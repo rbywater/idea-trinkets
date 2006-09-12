@@ -1,0 +1,36 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <name>Research</name>
+    <description>Perform researching of current selection or word</description>
+    <version>0.1</version>
+    <vendor>Alexey Efimov</vendor>
+    <idea-version since-build="5321"/>
+    <application-components>
+        <component>
+            <interface-class>org.intellij.trinkets.research.ResearchEngineManager</interface-class>
+            <implementation-class>org.intellij.trinkets.research.impl.ResearchEngineManagerImpl</implementation-class>
+        </component>
+    </application-components>
+    <project-components>
+        <component>
+            <interface-class>org.intellij.trinkets.research.ResearchManager</interface-class>
+            <implementation-class>org.intellij.trinkets.research.impl.ResearchManagerImpl</implementation-class>
+        </component>
+    </project-components>
+    <actions>
+        <action id="Research.ResearchAction" class="org.intellij.trinkets.research.actions.ResearchAction"
+                text="Research" description="Perform researching">
+            <mouse-shortcut keystroke="alt button1" keymap="$default"/>
+            <add-to-group anchor="after" relative-to-action="FindUsages" group-id="EditorPopupMenu" />
+        </action>
+        <action id="Research.ToolWindow.Close" class="org.intellij.trinkets.research.actions.CloseToolWindowAction"
+                text="Close" description="Close research results" icon="/actions/cancel.png"/>
+        <action id="Research.ToolWindow.LearnMore" class="org.intellij.trinkets.research.actions.LearnMoreAction"
+                text="Learn More..." description="Open browser window with research URL" icon="/general/learnMore.png"/>
+        <group id="Research.ToolWindow.Toolbar">
+            <reference id="Research.ToolWindow.LearnMore" />
+            <separator />
+            <reference id="Research.ToolWindow.Close" />
+        </group>
+    </actions>
+</idea-plugin>

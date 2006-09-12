@@ -1,0 +1,34 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <name>OpenWith</name>
+    <description>Enables "Open With" different editor for any files in project.</description>
+    <version>1.0</version>
+    <vendor>Alexey Efimov</vendor>
+    <idea-version since-build="5231"/>
+
+    <resource-bundle>org.intellij.trinkets.openWith.util.OpenWithBundle</resource-bundle>
+
+    <application-components>
+        <component>
+            <implementation-class>org.intellij.trinkets.openWith.OpenWithManager</implementation-class>
+        </component>
+    </application-components>
+    <actions>
+        <group id="OpenWith.OpenWithGroup" class="org.intellij.trinkets.openWith.actions.OpenWithActionGroup" popup="true">
+            <add-to-group anchor="after" group-id="ViewMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="FavoritesViewPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="ScopeViewPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="StructureViewPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="TypeHierarchyPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="MethodHierarchyPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="CallHierarchyPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="CommanderPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="Vcs.FileViewPopup" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="UsageView.Popup" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="GuiDesigner.EditorPopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="GuiDesigner.ComponentTreePopupMenu" relative-to-action="EditSource" />
+            <add-to-group anchor="after" group-id="GuiDesigner.PropertyInspectorPopupMenu" relative-to-action="EditSource" />
+        </group>
+    </actions>
+</idea-plugin>

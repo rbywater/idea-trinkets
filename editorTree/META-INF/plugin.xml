@@ -1,0 +1,52 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <vendor>Alexey Efimov</vendor>
+
+    <name>EditorTree</name>
+    <version>1.0.1</version>
+
+    <description>Show popup with currently opened files in editors organized by tree.</description>
+    <resource-bundle>org.intellij.trinkets.editorTree.util.EditorTreeBundle</resource-bundle>
+
+    <idea-version since-build="4089"/>
+
+    <application-components>
+        <component>
+            <interface-class>org.intellij.trinkets.editorTree.view.actionSystem.EditorTreeViewActionMonitor</interface-class>
+            <implementation-class>org.intellij.trinkets.editorTree.view.actionSystem.impl.EditorTreeViewActionMonitorImpl</implementation-class>
+        </component>
+    </application-components>
+
+    <project-components>
+        <component>
+            <interface-class>org.intellij.trinkets.editorTree.EditorTreeManager</interface-class>
+            <implementation-class>org.intellij.trinkets.editorTree.impl.EditorTreeManagerImpl</implementation-class>
+        </component>
+        <component>
+            <interface-class>org.intellij.trinkets.editorTree.view.EditorTreeViewManager</interface-class>
+            <implementation-class>org.intellij.trinkets.editorTree.view.impl.EditorTreeViewManagerImpl</implementation-class>
+        </component>
+    </project-components>
+
+    <actions>
+        <action class="org.intellij.trinkets.editorTree.actions.ShowEditorTreeAction"
+                id="EditorTree.ShowEditorTree">
+            <keyboard-shortcut first-keystroke="ctrl shift E" keymap="$default"/>
+            <add-to-group anchor="after" group-id="ViewMenu" relative-to-action="RecentFiles" />
+        </action>
+
+        <group id="EditorTree.View.Popup">
+            <action class="org.intellij.trinkets.editorTree.view.actions.CloseAction" id="EditorTree.View.Close">
+                <keyboard-shortcut first-keystroke="DELETE" keymap="$default"/>
+            </action>
+            <action class="org.intellij.trinkets.editorTree.view.actions.CloseAllButThisAction"
+                    id="EditorTree.View.CloseAllButThis">
+                <keyboard-shortcut first-keystroke="INSERT" keymap="$default"/>
+            </action>
+            <action class="org.intellij.trinkets.editorTree.view.actions.JumpToEditorAction"
+                    id="EditorTree.View.JumpToEditor">
+                <keyboard-shortcut first-keystroke="F4" keymap="$default"/>
+            </action>
+        </group>
+    </actions>
+</idea-plugin>
