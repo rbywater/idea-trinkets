@@ -1,0 +1,18 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <vendor>Alexey Efimov</vendor>
+
+    <name>Native2Ascii</name>
+    <version>1.0.9</version>
+
+    <description>Support for compiling native properties files to ascii.</description>
+    <resource-bundle>org.intellij.trinkets.native2ascii.util.Native2AsciiBundle</resource-bundle>
+
+    <idea-version since-build="5557"/>
+
+    <project-components>
+        <component>
+            <implementation-class>org.intellij.trinkets.native2ascii.Native2AsciiCompilerManager</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>

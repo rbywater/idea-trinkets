@@ -1,0 +1,26 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <name>LogFilter</name>
+    <description>Log filter for coloring or split by tabs IntelliJ IDEA console output.</description>
+    <version>1.0.1</version>
+    <vendor>Alexey Efimov</vendor>
+    <idea-version since-build="5181"/>
+    <project-components>
+        <component>
+            <interface-class>org.intellij.trinkets.logFilter.LogFilterManager</interface-class>
+            <implementation-class>org.intellij.trinkets.logFilter.impl.LogFilterManagerImpl</implementation-class>
+        </component>
+        <component>
+            <interface-class>org.intellij.trinkets.logFilter.LogFilterConfigurable</interface-class>
+            <implementation-class>org.intellij.trinkets.logFilter.impl.LogFilterConfigurableImpl</implementation-class>
+        </component>
+    </project-components>
+    <actions>
+        <group id="LogFilter.Configuration.ToolBar">
+            <action id="LogFilter.Configuration.Add" class="org.intellij.trinkets.logFilter.actions.AddFilterAction" text="Add"
+                    description="Add filter" icon="/general/add.png"/>
+            <action id="LogFilter.Configuration.Remove" class="org.intellij.trinkets.logFilter.actions.RemoveFilterAction"
+                    text="Remove" description="Remove filter" icon="/general/remove.png"/>
+        </group>
+    </actions>
+</idea-plugin>

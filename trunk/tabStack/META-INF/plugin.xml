@@ -1,0 +1,21 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <name>TabStack</name>
+    <description>Plugin for catching editor tabs spilling and puting ejected files into stack. Files from stack will be
+        opened as soon as free place available in editor tabs.</description>
+    <version>1.0</version>
+    <vendor>Alexey Efimov</vendor>
+    <idea-version since-build="4109"/>
+    <project-components>
+        <component>
+            <interface-class>org.intellij.trinkets.tabStack.TabStackManager</interface-class>
+            <implementation-class>org.intellij.trinkets.tabStack.impl.TabStackManagerImpl</implementation-class>
+        </component>
+    </project-components>
+    <actions>
+        <action id="TabStack.PopStackAction" class="org.intellij.trinkets.tabStack.actions.PopStackAction" text="Spin Stack"
+                description="Pop file from stack and open it">
+            <add-to-group group-id="MainToolBar" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
