@@ -1,0 +1,28 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <depends>DevKit</depends>
+    <id>PluginPacker</id>
+    <name>Plugin Packer</name>
+    <description>This plugin can pack plugin distributive for IntelliJ IDEA Plugins Central. It can also pack sources
+        into common archive.
+    </description>
+    <version>1.0</version>
+    <vendor>Alexey Efimov</vendor>
+    <idea-version since-build="5692"/>
+    <project-components>
+        <component>
+            <interface-class>org.intellij.trinkets.pluginPacker.PluginPackerManager</interface-class>
+            <implementation-class>org.intellij.trinkets.pluginPacker.impl.PluginPackerManagerImpl</implementation-class>
+        </component>
+    </project-components>
+    <actions>
+        <group>
+            <action class="org.intellij.trinkets.pluginPacker.actions.PackAction" id="PackPluginAction"
+                    text="Pack Plugin..." icon="/nodes/pluginnotinstalled.png">
+                <keyboard-shortcut first-keystroke="control shift K" keymap="$default"/>
+            </action>
+            <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="Compile"/>
+            <add-to-group anchor="after" group-id="BuildMenu" relative-to-action="BuildJar"/>
+        </group>
+    </actions>
+</idea-plugin>
