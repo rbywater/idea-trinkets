@@ -4,6 +4,7 @@ import com.intellij.javaee.make.ManifestBuilder;
 import com.intellij.javaee.make.ModuleBuildProperties;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
@@ -194,11 +195,22 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
                 Set<String> names = new HashSet<String>();
                 for (Library library : libs) {
                     final VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+                    Set<File> excludedRoots = new HashSet<File>();
+                    excludedRoots.add(new File(PathManager.getLibPath()));
+                    excludedRoots.add(new File(PathManager.getPluginsPath()));
+                    excludedRoots.add(new File(PathManager.getPreinstalledPluginsPath()));
                     for (VirtualFile virtualFile : files) {
-                        if (virtualFile.getFileSystem() instanceof JarFileSystem) {
-                            addLibraryJar(virtualFile, zipFile, name, zos, progressIndicator);
-                        } else {
-                            makeAndAddLibraryJar(virtualFile, zos, zipFile, name, library, names, progressIndicator);
+                        boolean excluded = false;
+                        for (File excludedFile : excludedRoots) {
+                            excluded |= VfsUtil.isAncestor(excludedFile, VfsUtil.virtualToIoFile(virtualFile), false);
+                        }
+
+                        if (!excluded) {
+                            if (virtualFile.getFileSystem() instanceof JarFileSystem) {
+                                addLibraryJar(virtualFile, zipFile, name, zos, progressIndicator);
+                            } else {
+                                makeAndAddLibraryJar(virtualFile, zos, zipFile, name, library, names, progressIndicator);
+                            }
                         }
                     }
                 }
@@ -374,12 +386,19 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
             final HashSet<String> writtenItemRelativePaths = new HashSet<String>();
             for (Module module : modules) {
-                final VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
+                final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+                final VirtualFile[] roots = moduleRootManager.getContentRoots();
                 for (VirtualFile root : roots) {
                     ZipUtil.addDirToZipRecursively(zip, zipFile, new File(root.getPath()), "", new FileFilter() {
                         public boolean accept(File pathname) {
                             if (progressIndicator != null) {
                                 progressIndicator.setText2("");
+                            }
+                            VirtualFile[] files = moduleRootManager.getExcludeRoots();
+                            for (VirtualFile excluded : files) {
+                                if (VfsUtil.isAncestor(VfsUtil.virtualToIoFile(excluded), pathname, false)) {
+                                    return false;
+                                }
                             }
                             return !myFileTypeManager.isFileIgnored(FileUtil.toSystemIndependentName(pathname.getName()));
                         }
