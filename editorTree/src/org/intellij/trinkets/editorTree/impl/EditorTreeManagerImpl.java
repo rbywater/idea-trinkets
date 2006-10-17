@@ -16,6 +16,7 @@ import org.intellij.trinkets.editorTree.view.EditorTreeView;
 import org.intellij.trinkets.editorTree.view.EditorTreeViewManager;
 import org.intellij.trinkets.editorTree.view.EditorTreeViewModel;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ final class EditorTreeManagerImpl extends EditorTreeManager implements ProjectCo
         fileEditorManager.removeFileEditorManagerListener(this);
     }
 
+    @NotNull
     @NonNls
     public String getComponentName() {
         return "EditorTreeManager";
@@ -86,7 +88,7 @@ final class EditorTreeManagerImpl extends EditorTreeManager implements ProjectCo
     public void editorReleased(EditorFactoryEvent event) {
         // Since Bundles have wrong editor
         // if (project.equals(event.getEditor().getProject())) {
-            rebuildEditorTree();
+        rebuildEditorTree();
         // }
     }
 
