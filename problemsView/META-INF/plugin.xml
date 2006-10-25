@@ -1,20 +1,24 @@
 <!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
 <idea-plugin>
-    <name>ProblemsView</name>
+    <id>ProblemsView</id>
+    <name>Problems View</name>
     <description>
         The problems detector for monitoring something wrong in
         IDE (incomplete settings, wrong configurations, etc)
     </description>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <vendor>Alexey Efimov</vendor>
     <idea-version since-build="5557"/>
     <application-components>
         <component>
             <interface-class>org.intellij.trinkets.problemsView.problems.ProblemManager</interface-class>
-            <implementation-class>org.intellij.trinkets.problemsView.problems.impl.ProblemManagerImpl</implementation-class>
+            <implementation-class>org.intellij.trinkets.problemsView.problems.impl.ProblemManagerImpl
+            </implementation-class>
         </component>
         <component>
-            <implementation-class>org.intellij.trinkets.problemsView.inspections.applicationSettings.ApplicationProblemInspections</implementation-class>
+            <implementation-class>
+                org.intellij.trinkets.problemsView.inspections.applicationSettings.ApplicationProblemInspections
+            </implementation-class>
         </component>
     </application-components>
     <project-components>
@@ -23,7 +27,9 @@
             <implementation-class>org.intellij.trinkets.problemsView.impl.ProblemViewManagerImpl</implementation-class>
         </component>
         <component>
-            <implementation-class>org.intellij.trinkets.problemsView.inspections.projectSettings.ProjectProblemInspections</implementation-class>
+            <implementation-class>
+                org.intellij.trinkets.problemsView.inspections.projectSettings.ProjectProblemInspections
+            </implementation-class>
         </component>
     </project-components>
     <actions>
@@ -36,8 +42,8 @@
                 class="org.intellij.trinkets.problemsView.actions.PauseAction" text="Pause"
                 description="Pause/Resume problems collecting"/>
         <group id="Trinkets.ProblemView.ToolBar">
-            <reference id="Trinkets.ProblemView.ToolBar.RefreshAction" />
-            <reference id="Trinkets.ProblemView.ToolBar.PauseAction" />
+            <reference id="Trinkets.ProblemView.ToolBar.RefreshAction"/>
+            <reference id="Trinkets.ProblemView.ToolBar.PauseAction"/>
         </group>
     </actions>
 </idea-plugin>
