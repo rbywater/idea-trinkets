@@ -40,7 +40,11 @@ public final class PackAction extends AnAction {
                         public void finished(boolean aborted, int errors, int warnings, final CompileContext compileContext) {
                             PluginPackerManager packerManager = PluginPackerManager.getInstance(project);
                             if (!aborted && errors == 0) {
-                                packerManager.packModule(module, dialog.getPackagePattern(), dialog.getSourcesPattern(), dialog.isIncludeSources(), dialog.getOutputPath());
+                                String packagePattern = dialog.getPackagePattern();
+                                String sourcesPattern = dialog.isBuildSources() ? dialog.getSourcesPattern() : null;
+                                boolean isInboxSources = dialog.isInboxSources();
+                                String directory = dialog.getOutputPath();
+                                packerManager.packModule(module, packagePattern, sourcesPattern, isInboxSources, directory);
                             }
                         }
                     });

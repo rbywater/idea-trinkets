@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.intellij.trinkets.pluginPacker.ui.PluginPackerForm">
-  <grid id="27dc6" binding="root" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="root" layout-manager="GridLayoutManager" row-count="7" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="500" height="400"/>
@@ -14,39 +14,30 @@
         </constraints>
         <properties>
           <labelFor value="e723d"/>
-          <text value="&amp;Package pattern:"/>
+          <text value="&amp;Binary package pattern:"/>
         </properties>
       </component>
-      <component id="a19d9" class="javax.swing.JLabel">
+      <component id="a73fd" class="javax.swing.JRadioButton" binding="inboxSourcesButton">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <labelFor value="346e2"/>
-          <text value="&amp;Sources pattern:"/>
-        </properties>
-      </component>
-      <component id="18ac5" class="javax.swing.JCheckBox" binding="putSourcesTogetherWithCheckBox" default-binding="true">
-        <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
         </constraints>
         <properties>
           <selected value="true"/>
-          <text value="Put sources &amp;together with plugin classes"/>
+          <text value="&amp;Inbox sources package pattern:"/>
         </properties>
       </component>
       <component id="c8bfd" class="javax.swing.JLabel">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <labelFor value="857ad"/>
-          <text value="&amp;Output path:"/>
+          <text value="Output &amp;path:"/>
         </properties>
       </component>
       <component id="857ad" class="com.intellij.openapi.ui.ComponentWithBrowseButton" binding="outputPathTextFieldWithBrowseButton" custom-create="true" default-binding="true">
         <constraints>
-          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
       </component>
@@ -67,7 +58,7 @@
       </component>
       <vspacer id="c9170">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="e723d" class="com.intellij.ui.TextFieldWithStoredHistory" binding="packagePatternTextFieldWithStoredHistory" custom-create="true" default-binding="true">
@@ -75,11 +66,43 @@
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
       </component>
-      <component id="346e2" class="com.intellij.ui.TextFieldWithStoredHistory" binding="sourcesPatternTextFieldWithStoredHistory" custom-create="true" default-binding="true">
+      <component id="346e2" class="com.intellij.ui.TextFieldWithStoredHistory" binding="inboxSourcesPatternTextFieldWithStoredHistory" custom-create="true">
         <constraints>
-          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="1" height="23"/>
+          </grid>
         </constraints>
+      </component>
+      <component id="32487" class="javax.swing.JRadioButton" binding="outboxSourcesButton">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="&amp;Outbox sources package pattern:"/>
+        </properties>
+      </component>
+      <component id="b42f5" class="com.intellij.ui.TextFieldWithStoredHistory" binding="outboxSourcesPatternTextFieldWithStoredHistory" custom-create="true">
+        <constraints>
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="1" height="23"/>
+          </grid>
+        </constraints>
+      </component>
+      <component id="a077d" class="javax.swing.JCheckBox" binding="buildSourcesPackageAlsoCheckBox" default-binding="true">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <selected value="true"/>
+          <text value="Build &amp;sources package also"/>
+        </properties>
       </component>
     </children>
   </grid>
+  <buttonGroups>
+    <group name="Source_Package_Patterns">
+      <member id="a73fd"/>
+      <member id="32487"/>
+    </group>
+  </buttonGroups>
 </form>
