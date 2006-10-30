@@ -3,6 +3,7 @@ package org.intellij.trinkets.pluginPacker.ui;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -24,6 +25,11 @@ public final class PluginPackerDialog extends DialogWrapper {
         init();
     }
 
+    @NonNls
+    protected String getDimensionServiceKey() {
+        return "PluginPacker.Dialog";
+    }
+
     @Nullable
     protected JComponent createCenterPanel() {
         if (form == null) {
@@ -33,9 +39,15 @@ public final class PluginPackerDialog extends DialogWrapper {
     }
 
     protected void doOKAction() {
+        form.saveFieldsHistory();
         if (form.validate()) {
             super.doOKAction();
         }
+    }
+
+    public void doCancelAction() {
+        form.saveFieldsHistory();
+        super.doCancelAction();
     }
 
     public final Module getModule() {
@@ -54,8 +66,11 @@ public final class PluginPackerDialog extends DialogWrapper {
         return form.getOutputPath();
     }
 
-    public final boolean isIncludeSources() {
-        return form.isIncludeSources();
+    public final boolean isBuildSources() {
+        return form.isBuildSources();
     }
 
+    public final boolean isInboxSources() {
+        return form.isInboxSources();
+    }
 }
