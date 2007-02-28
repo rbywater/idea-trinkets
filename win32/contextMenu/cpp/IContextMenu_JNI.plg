@@ -1,0 +1,52 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: IContextMenu_JNI - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\TEMP\system\RSP42D.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ICONTEXTMENU_JNI_EXPORTS" /FR"Debug/" /Fp"Debug/IContextMenu_JNI.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\Documents and Settings\ae230033\My Documents\My Projects\plugins\trinkets\win32\contextMenu\cpp\IContextMenu_JNI.cpp"
+"C:\Documents and Settings\ae230033\My Documents\My Projects\plugins\trinkets\win32\contextMenu\cpp\PidlFromFileSpec.cpp"
+"C:\Documents and Settings\ae230033\My Documents\My Projects\plugins\trinkets\win32\contextMenu\cpp\org_trinkets_win32_shell_impl_IContextMenuImpl.cpp"
+]
+Creating command line "cl.exe @C:\TEMP\system\RSP42D.tmp" 
+Creating temporary file "C:\TEMP\system\RSP42E.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ICONTEXTMENU_JNI_EXPORTS" /FR"Debug/" /Fp"Debug/IContextMenu_JNI.pch" /Yc"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\Documents and Settings\ae230033\My Documents\My Projects\plugins\trinkets\win32\contextMenu\cpp\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\TEMP\system\RSP42E.tmp" 
+Creating temporary file "C:\TEMP\system\RSP42F.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"Debug/IContextMenu_JNI.pdb" /debug /machine:I386 /out:"Debug/IContextMenu_JNI.dll" /implib:"Debug/IContextMenu_JNI.lib" /pdbtype:sept 
+".\Debug\IContextMenu_JNI.obj"
+".\Debug\PidlFromFileSpec.obj"
+".\Debug\StdAfx.obj"
+".\Debug\org_trinkets_win32_shell_impl_IContextMenuImpl.obj"
+]
+Creating command line "link.exe @C:\TEMP\system\RSP42F.tmp"
+<h3>Output Window</h3>
+Compiling...
+StdAfx.cpp
+Compiling...
+IContextMenu_JNI.cpp
+PidlFromFileSpec.cpp
+org_trinkets_win32_shell_impl_IContextMenuImpl.cpp
+Generating Code...
+Linking...
+   Creating library Debug/IContextMenu_JNI.lib and object Debug/IContextMenu_JNI.exp
+Creating command line "bscmake.exe /nologo /o"Debug/IContextMenu_JNI.bsc"  ".\Debug\StdAfx.sbr" ".\Debug\IContextMenu_JNI.sbr" ".\Debug\PidlFromFileSpec.sbr" ".\Debug\org_trinkets_win32_shell_impl_IContextMenuImpl.sbr""
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+IContextMenu_JNI.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

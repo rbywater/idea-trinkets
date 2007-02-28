@@ -1,0 +1,19 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+    <id>WindowsContextMenu</id>
+    <name>Windows Context Menu</name>
+    <description>Windows Explorer context menu for files and folders within IDEA project. This plugin idea is came from
+        known FAR Manager plugin EMenu.
+    </description>
+    <version>1.0</version>
+    <vendor>Alexey Efimov</vendor>
+    <idea-version since-build="6708"/>
+
+    <actions>
+        <group popup="true" class="org.intellij.trinkets.win32.contextMenu.actions.IContextMenuGroup"
+               text="Windows Explorer" description="Show context menu from Windows Explorer">
+            <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="EditSource"/>
+            <add-to-group anchor="after" group-id="CommanderPopupMenu" relative-to-action="EditSource"/>
+        </group>
+    </actions>
+</idea-plugin>
