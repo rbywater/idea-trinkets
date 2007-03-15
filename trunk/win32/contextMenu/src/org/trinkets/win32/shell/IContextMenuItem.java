@@ -1,7 +1,10 @@
 package org.trinkets.win32.shell;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.image.*;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -9,15 +12,28 @@ import java.util.List;
  *
  * @author Alexey Efimov
  */
-public final class IContextMenuItem implements Iterable<IContextMenuItem> {
+public final class IContextMenuItem {
+    public static final IContextMenuItem[] EMPTY_ARRAY = {};
+    private static final int[] MASK = {0x00ff0000, 0x0000ff00, 0x000000ff};
+
     private final int id;
     private final String text;
-    private final List<IContextMenuItem> children = new ArrayList<IContextMenuItem>(0);
-    private IContextMenuItem parrent;
+    private final String description;
+    private final boolean subMenu;
+    private final DataBuffer imageBuffer;
+    private final int imageWidth;
+    private final int imageHeight;
+    private IContextMenuItem parent;
+    private Icon icon;
 
-    public IContextMenuItem(int id, String text) {
+    public IContextMenuItem(int id, String text, String description, boolean subMenu, DataBuffer imageBuffer, int imageWidth, int imageHeight) {
         this.id = id;
         this.text = text;
+        this.description = description;
+        this.subMenu = subMenu;
+        this.imageBuffer = imageBuffer;
+        this.imageWidth = imageWidth;
+        this.imageHeight = imageHeight;
     }
 
     public int getId() {
@@ -28,31 +44,56 @@ public final class IContextMenuItem implements Iterable<IContextMenuItem> {
         return text;
     }
 
-    public IContextMenuItem getParrent() {
-        return parrent;
+    public String getDescription() {
+        return description;
     }
 
-    public void addChild(IContextMenuItem item) {
-        if (children.add(item)) {
-            item.parrent = this;
+    public boolean isSubMenu() {
+        return subMenu;
+    }
+
+    public IContextMenuItem getParent() {
+        return parent;
+    }
+
+    public void setParent(IContextMenuItem parent) {
+        this.parent = parent;
+    }
+
+    @NotNull
+    public IContextMenuItem[] getParentPath() {
+        List<IContextMenuItem> path = new LinkedList<IContextMenuItem>();
+        fillParentPath(path);
+        return path.toArray(EMPTY_ARRAY);
+    }
+
+    private void fillParentPath(List<IContextMenuItem> path) {
+        if (parent != null) {
+            parent.fillParentPath(path);
+            path.add(parent);
         }
     }
 
-    public void removeChild(IContextMenuItem item) {
-        if (children.remove(item)) {
-            item.parrent = null;
+    public IContextMenuItem[] getPath() {
+        List<IContextMenuItem> path = new LinkedList<IContextMenuItem>();
+        fillParentPath(path);
+        path.add(this);
+        return path.toArray(EMPTY_ARRAY);
+    }
+
+    public DataBuffer getImageBuffer() {
+        return imageBuffer;
+    }
+
+    public Icon getIcon() {
+        if (icon == null) {
+            if (imageBuffer != null) {
+                ColorModel colorModel = new DirectColorModel(32, MASK[0], MASK[1], MASK[2]);
+                WritableRaster writableRaster = Raster.createPackedRaster(imageBuffer, imageWidth, imageHeight, imageWidth, MASK, null);
+                BufferedImage image = new BufferedImage(colorModel, writableRaster, true, null);
+                icon = new ImageIcon(image);
+            }
         }
-    }
-
-    public int getChildrenSize() {
-        return children.size();
-    }
-
-    public IContextMenuItem getChild(int index) {
-        return children.get(index);
-    }
-
-    public Iterator<IContextMenuItem> iterator() {
-        return children.iterator();
+        return icon;
     }
 }

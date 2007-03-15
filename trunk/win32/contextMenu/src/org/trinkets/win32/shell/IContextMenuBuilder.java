@@ -6,5 +6,5 @@ package org.trinkets.win32.shell;
  * @author Alexey Efimov
  */
 public interface IContextMenuBuilder {
-    IContextMenu createContextMenu(String filePath);
+    IContextMenu createContextMenu(String[] filePaths);
 }

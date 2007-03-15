@@ -4,8 +4,6 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 public class LibraryLoader {
@@ -21,7 +19,6 @@ public class LibraryLoader {
     }
 
     private static final class LibraryClassLoader extends ClassLoader {
-        private final Map<String, Class> loaded = new HashMap<String, Class>();
         private final File librariesHome;
         private final String libraryExtension;
 
@@ -31,11 +28,8 @@ public class LibraryLoader {
             this.libraryExtension = libraryExtension;
         }
 
-        public synchronized Class defineClass(String name) throws ClassNotFoundException {
-            if (loaded.containsKey(name)) {
-                return loaded.get(name);
-            }
-            URL classURL = LibraryLoader.class.getResource('/' + name.replace('.', '/') + ".class");
+        protected final Class<?> defineClass(String name) throws ClassNotFoundException {
+            URL classURL = getParent().getResource(name.replace('.', '/').concat(".class"));
             if (classURL != null) {
                 try {
                     InputStream inputStream = classURL.openStream();
@@ -54,9 +48,7 @@ public class LibraryLoader {
                             System.arraycopy(buffer, 0, bytecode, length, n);
                             length += n;
                         }
-                        Class aClass = defineClass(name, bytecode, 0, length);
-                        loaded.put(name, aClass);
-                        return aClass;
+                        return defineClass(name, bytecode, 0, length);
                     } finally {
                         inputStream.close();
                     }
@@ -67,15 +59,8 @@ public class LibraryLoader {
             throw new ClassNotFoundException(name);
         }
 
-        protected synchronized Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-            if (loaded.containsKey(name)) {
-                return loaded.get(name);
-            }
-            return getParent().loadClass(name);
-        }
-
         protected String findLibrary(String libname) {
-            String libFileName = libname + '.' + libraryExtension;
+            String libFileName = libname + libraryExtension;
             File[] files = librariesHome.listFiles();
             for (File file : files) {
                 if (file.getName().equals(libFileName)) {
@@ -119,10 +104,12 @@ public class LibraryLoader {
      */
     public void extractLibrary(String resourceName, String libraryName) {
         try {
-            URL resource = LibraryLoader.class.getResource(resourceName);
+            URL resource = loader.getParent().getResource(resourceName);
             if (resource != null) {
                 librariesHome.mkdirs();
-                File file = new File(librariesHome, libraryName + '.' + libraryExtension);
+                librariesHome.deleteOnExit();
+                File file = new File(librariesHome, libraryName + libraryExtension);
+                file.deleteOnExit();
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 ZipInputStream zip = new ZipInputStream(resource.openStream());
                 zip.getNextEntry();
@@ -136,7 +123,6 @@ public class LibraryLoader {
                     inputStream.close();
                     fileOutputStream.close();
                 }
-                file.deleteOnExit();
             }
         } catch (Exception e) {
             // Ignore

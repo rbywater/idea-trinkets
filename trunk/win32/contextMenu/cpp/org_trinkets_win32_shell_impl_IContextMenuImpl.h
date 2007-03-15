@@ -10,18 +10,18 @@ extern "C" {
 /*
  * Class:     org_trinkets_win32_shell_impl_IContextMenuImpl
  * Method:    getItems0
- * Signature: (Ljava/lang/String;)[Lorg/trinkets/win32/shell/IContextMenuItem;
+ * Signature: ([Ljava/lang/String;[I)[Lorg/trinkets/win32/shell/IContextMenuItem;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_getItems0
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jobject, jobject awtOwner, jobjectArray, jintArray);
 
 /*
  * Class:     org_trinkets_win32_shell_impl_IContextMenuImpl
  * Method:    invokeItem0
- * Signature: (Ljava/lang/String;I)V
+ * Signature: ([Ljava/lang/String;[II)V
  */
 JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_invokeItem0
-  (JNIEnv *, jobject, jstring, jint);
+  (JNIEnv *, jobject, jobjectArray, jintArray, jint);
 
 #ifdef __cplusplus
 }

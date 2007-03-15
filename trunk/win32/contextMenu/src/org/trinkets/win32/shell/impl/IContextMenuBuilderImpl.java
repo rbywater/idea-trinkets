@@ -14,7 +14,7 @@ public final class IContextMenuBuilderImpl implements IContextMenuBuilder {
         libraryLoader.extractLibrary("/org/trinkets/win32/shell/impl/IContextMenu_JNI.zip", "IContextMenu_JNI");
     }
 
-    public IContextMenu createContextMenu(String filePath) {
-        return new IContextMenuImpl(filePath);
+    public IContextMenu createContextMenu(String[] filePaths) {
+        return new IContextMenuImpl(filePaths);
     }
 }
