@@ -45,9 +45,14 @@ public class IContextMenuTest {
         panel.doLayout();
         panel.repaint();
         if (icon != null) {
-            System.out.println(MessageFormat.format("{0}({1}), image = {2} x {3}", offset + item.getText(), item.getDescription(), w, h));
+            System.out.println(MessageFormat.format("{0}: {1}({2}), image = {3} x {4}", item.getId(), offset + item.getText(), item.getDescription(), w, h));
         } else {
-            System.out.println(MessageFormat.format("{0}({1})", offset + item.getText(), item.getDescription()));
+            System.out.println(MessageFormat.format("{0}: {1}({2})", item.getId(), offset + item.getText(), item.getDescription()));
+        }
+        if (item.getParent() != null && item.getParent().getId() == 6 && item.getId() == 1) {
+            // Send to command
+            System.out.println("\t\t* Execute this item...");
+            cm.invokeItem(panel, item);
         }
         if (item.isSubMenu()) {
             IContextMenuItem[] items = cm.getItems(panel, item.getPath());
