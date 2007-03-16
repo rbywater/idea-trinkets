@@ -30,8 +30,8 @@ public:
     HDC m_hDC;
 
     HRESULT QueryContextMenu(HMENU hMenu);
-	HRESULT GetCommandString(HMENU hMenu, UINT index, char* szHelpText);
-	HRESULT InvokeCommand(HMENU hMenu, HWND hWnd, UINT index);
+    HRESULT GetCommandString(HMENU hMenu, UINT index, char* szHelpText);
+    HRESULT InvokeCommand(HMENU hMenu, HWND hWnd, UINT index);
 
     HMENU FindMenuItem(HMENU hMenu, UINT index);
     HBITMAP InitializeOwnerDrawItem(HMENU hMenu, UINT index, SIZE *lpSize);
