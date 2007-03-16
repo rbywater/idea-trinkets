@@ -357,43 +357,38 @@ HRESULT CContextMenuHelper::GetCommandString(HMENU hMenu, UINT index, char* szHe
 HRESULT CContextMenuHelper::InvokeCommand(HMENU hMenu, HWND hWnd, UINT index) {
     HRESULT hr;
 
-    IContextMenu2* pcm2;
-    if (SUCCEEDED(hr = m_lpcm->QueryInterface(IID_IContextMenu2, (LPVOID*)&pcm2))) {
-        UINT nID = ::GetMenuItemID(hMenu, index);
-        CMINVOKECOMMANDINFO cmi;
-        ZeroMemory(&cmi, sizeof(cmi));
-        cmi.cbSize       = sizeof(cmi);
-        cmi.fMask        = 0;
-        cmi.hwnd         = hWnd;
-        if (nID == 28) {
-            // Fuckin 'Send To' menu...
-            // Try to get string and invoke it directly...
-            MENUITEMINFO mii;
-            char szName[MAX_PATH + 1];
-            ZeroMemory(&mii, sizeof(mii));
-            ZeroMemory(szName, sizeof(char) * (MAX_PATH + 1));
+    UINT nID = ::GetMenuItemID(hMenu, index);
+    CMINVOKECOMMANDINFO cmi;
+    ZeroMemory(&cmi, sizeof(cmi));
+    cmi.cbSize       = sizeof(cmi);
+    cmi.fMask        = 0;
+    cmi.hwnd         = hWnd;
+    if (nID == 28) {
+        // Fuckin 'Send To' menu...
+        // Try to get string and invoke it directly...
+        MENUITEMINFO mii;
+        char szName[MAX_PATH + 1];
+        ZeroMemory(&mii, sizeof(mii));
+        ZeroMemory(szName, sizeof(char) * (MAX_PATH + 1));
 
-            mii.cbSize = sizeof(mii);
-            mii.fMask = MIIM_SUBMENU | MIIM_ID | MIIM_TYPE | MIIM_DATA;
-            mii.dwTypeData = szName;
-            mii.cch = sizeof(szName);
-            if (::GetMenuItemInfo(hMenu, index, TRUE, &mii) && mii.dwItemData != NULL) {
-                cmi.lpVerb = (char*)mii.dwItemData;
-            } else {
-                cmi.lpVerb = MAKEINTRESOURCE(nID);
-            }
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_SUBMENU | MIIM_ID | MIIM_TYPE | MIIM_DATA;
+        mii.dwTypeData = szName;
+        mii.cch = sizeof(szName);
+        if (::GetMenuItemInfo(hMenu, index, TRUE, &mii) && mii.dwItemData != NULL) {
+            cmi.lpVerb = (char*)mii.dwItemData;
         } else {
-            cmi.lpVerb   = MAKEINTRESOURCE(nID);
+            cmi.lpVerb = MAKEINTRESOURCE(nID);
         }
-        cmi.lpParameters = NULL;
-        cmi.lpDirectory  = NULL;
-        cmi.nShow        = SW_SHOWNORMAL;
-        cmi.dwHotKey     = 0;
-        cmi.hIcon        = NULL;
-        hr = m_lpcm->InvokeCommand(&cmi);
     } else {
-
+        cmi.lpVerb   = MAKEINTRESOURCE(nID);
     }
+    cmi.lpParameters = NULL;
+    cmi.lpDirectory  = NULL;
+    cmi.nShow        = SW_SHOWNORMAL;
+    cmi.dwHotKey     = 0;
+    cmi.hIcon        = NULL;
+    hr = m_lpcm->InvokeCommand(&cmi);
 
     return hr;
 
