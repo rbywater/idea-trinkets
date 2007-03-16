@@ -72,7 +72,7 @@ BOOL JNU_StringArrayToVector(JNIEnv *env, jobjectArray strings, std::vector<LPCT
         }
         files->push_back(psz);
     }
-	return TRUE;
+    return TRUE;
 }
 
 HWND GetAWTWindow(JNIEnv *env, jobject component) {
@@ -168,10 +168,10 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
     }
     
 
-	std::vector<LPCTSTR> files;
-	if (!JNU_StringArrayToVector(env, filePaths, &files)) {
-		return NULL; // Exception
-	}
+    std::vector<LPCTSTR> files;
+    if (!JNU_StringArrayToVector(env, filePaths, &files)) {
+        return NULL; // Exception
+    }
 
     UINT nMenuPaths = env->GetArrayLength(menuPath);
 
@@ -329,9 +329,9 @@ JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_invok
     }
 
     std::vector<LPCTSTR> files;
-	if (!JNU_StringArrayToVector(env, filePaths, &files)) {
-		return; // Exception
-	}
+    if (!JNU_StringArrayToVector(env, filePaths, &files)) {
+        return; // Exception
+    }
 
     UINT nMenuPaths = env->GetArrayLength(menuPath);
 
@@ -363,7 +363,7 @@ JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_invok
                         }
                     }
 
-					cm->InvokeCommand(hParent, hWnd, item);
+                    cm->InvokeCommand(hParent, hWnd, item);
                 }
             }
             DestroyMenu(hMenu);

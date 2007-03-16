@@ -337,21 +337,21 @@ HRESULT CContextMenuHelper::QueryContextMenu(HMENU hMenu) {
     IContextMenu2* pcm2;
     if (SUCCEEDED(hr = m_lpcm->QueryInterface(IID_IContextMenu2, (LPVOID*)&pcm2))) {
 
-		hr = pcm2->QueryContextMenu(hMenu, 0, 0, 0x7FFF, CMF_EXPLORE);
+        hr = pcm2->QueryContextMenu(hMenu, 0, 0, 0x7FFF, CMF_EXPLORE);
 
-		pcm2->Release();
-	}
-	return hr;
+        pcm2->Release();
+    }
+    return hr;
 }
 
 HRESULT CContextMenuHelper::GetCommandString(HMENU hMenu, UINT index, char* szHelpText) {
-	// Get item description
-	ZeroMemory(szHelpText, sizeof(char) * (MAX_PATH + 1));
+    // Get item description
+    ZeroMemory(szHelpText, sizeof(char) * (MAX_PATH + 1));
 
-	UINT nID = ::GetMenuItemID(hMenu, index);
+    UINT nID = ::GetMenuItemID(hMenu, index);
 
-	// try with Unicode first (it seems Explorer does so)
-	return m_lpcm->GetCommandString(nID, GCS_HELPTEXTA, NULL, (LPSTR)szHelpText, MAX_PATH);
+    // try with Unicode first (it seems Explorer does so)
+    return m_lpcm->GetCommandString(nID, GCS_HELPTEXTA, NULL, (LPSTR)szHelpText, MAX_PATH);
 }
 
 HRESULT CContextMenuHelper::InvokeCommand(HMENU hMenu, HWND hWnd, UINT index) {
@@ -359,15 +359,15 @@ HRESULT CContextMenuHelper::InvokeCommand(HMENU hMenu, HWND hWnd, UINT index) {
 
     IContextMenu2* pcm2;
     if (SUCCEEDED(hr = m_lpcm->QueryInterface(IID_IContextMenu2, (LPVOID*)&pcm2))) {
-		UINT nID = ::GetMenuItemID(hMenu, index);
-		CMINVOKECOMMANDINFO cmi;
-		ZeroMemory(&cmi, sizeof(cmi));
-		cmi.cbSize       = sizeof(cmi);
-		cmi.fMask        = 0;
-		cmi.hwnd         = hWnd;
-		if (nID == 28) {
-			// Fuckin 'Send To' menu...
-			// Try to get string and invoke it directly...
+        UINT nID = ::GetMenuItemID(hMenu, index);
+        CMINVOKECOMMANDINFO cmi;
+        ZeroMemory(&cmi, sizeof(cmi));
+        cmi.cbSize       = sizeof(cmi);
+        cmi.fMask        = 0;
+        cmi.hwnd         = hWnd;
+        if (nID == 28) {
+            // Fuckin 'Send To' menu...
+            // Try to get string and invoke it directly...
             MENUITEMINFO mii;
             char szName[MAX_PATH + 1];
             ZeroMemory(&mii, sizeof(mii));
@@ -377,25 +377,25 @@ HRESULT CContextMenuHelper::InvokeCommand(HMENU hMenu, HWND hWnd, UINT index) {
             mii.fMask = MIIM_SUBMENU | MIIM_ID | MIIM_TYPE | MIIM_DATA;
             mii.dwTypeData = szName;
             mii.cch = sizeof(szName);
-			if (::GetMenuItemInfo(hMenu, index, TRUE, &mii) && mii.dwItemData != NULL) {
-				cmi.lpVerb = (char*)mii.dwItemData;
-			} else {
-				cmi.lpVerb = MAKEINTRESOURCE(nID);
-			}
-		} else {
-			cmi.lpVerb   = MAKEINTRESOURCE(nID);
-		}
-		cmi.lpParameters = NULL;
-		cmi.lpDirectory  = NULL;
-		cmi.nShow        = SW_SHOWNORMAL;
-		cmi.dwHotKey     = 0;
-		cmi.hIcon        = NULL;
-		hr = m_lpcm->InvokeCommand(&cmi);
-	} else {
+            if (::GetMenuItemInfo(hMenu, index, TRUE, &mii) && mii.dwItemData != NULL) {
+                cmi.lpVerb = (char*)mii.dwItemData;
+            } else {
+                cmi.lpVerb = MAKEINTRESOURCE(nID);
+            }
+        } else {
+            cmi.lpVerb   = MAKEINTRESOURCE(nID);
+        }
+        cmi.lpParameters = NULL;
+        cmi.lpDirectory  = NULL;
+        cmi.nShow        = SW_SHOWNORMAL;
+        cmi.dwHotKey     = 0;
+        cmi.hIcon        = NULL;
+        hr = m_lpcm->InvokeCommand(&cmi);
+    } else {
 
-	}
+    }
 
-	return hr;
+    return hr;
 
 }
 
