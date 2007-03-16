@@ -21,7 +21,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
  * Signature: ([Ljava/lang/String;[II)V
  */
 JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_invokeItem0
-  (JNIEnv *, jobject, jobjectArray, jintArray, jint);
+  (JNIEnv *, jobject, jobject awtOwner, jobjectArray, jintArray, jint);
 
 #ifdef __cplusplus
 }

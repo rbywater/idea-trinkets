@@ -129,7 +129,11 @@ public class IContextMenuGroup extends ActionGroup {
         }
 
         public void actionPerformed(AnActionEvent e) {
-            menu.invokeItem(item);
+            Project project = e.getData(DataKeys.PROJECT);
+            if (project != null) {
+                JFrame frame = WindowManagerEx.getInstance().getFrame(project);
+                menu.invokeItem(frame, item);
+            }
         }
     }
 

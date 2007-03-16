@@ -11,5 +11,5 @@ import java.awt.*;
 public interface IContextMenu {
     IContextMenuItem[] getItems(Component owner, IContextMenuItem[] path);
 
-    void invokeItem(IContextMenuItem item);
+    void invokeItem(Component owner, IContextMenuItem item);
 }

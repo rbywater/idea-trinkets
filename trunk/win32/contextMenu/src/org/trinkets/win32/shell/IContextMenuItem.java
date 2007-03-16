@@ -14,7 +14,7 @@ import java.util.List;
  */
 public final class IContextMenuItem {
     public static final IContextMenuItem[] EMPTY_ARRAY = {};
-    private static final int[] MASK = {0x00ff0000, 0x0000ff00, 0x000000ff};
+    private static final int[] MASK = {0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000};
 
     private final int id;
     private final String text;
@@ -88,9 +88,39 @@ public final class IContextMenuItem {
     public Icon getIcon() {
         if (icon == null) {
             if (imageBuffer != null) {
-                ColorModel colorModel = new DirectColorModel(32, MASK[0], MASK[1], MASK[2]);
+                ColorModel colorModel = new DirectColorModel(32, MASK[0], MASK[1], MASK[2], MASK[3]);
+                int size = imageBuffer.getSize();
+                // Corner points detection
+                int[] corners = {
+                        imageBuffer.getElem(0),
+                        imageBuffer.getElem(imageWidth),
+                        imageBuffer.getElem(size - imageWidth - 1),
+                        imageBuffer.getElem(size - 1)
+                };
+                // Find equals corners
+                int colorIndex = -1;
+                for (int i = 0; colorIndex == -1 && i < corners.length; i++) {
+                    int c1 = corners[i];
+                    for (int j = i + 1; colorIndex == -1 && j < corners.length; j++) {
+                        int c2 = corners[j];
+                        if (c1 == c2) {
+                            colorIndex = i;
+                        }
+                    }
+                }
+                int color = colorIndex != -1 ? corners[colorIndex] : 0x00ffffff;
+                // Delete color
+                for (int i = 0; i < size; i++) {
+                    int elem = imageBuffer.getElem(i);
+                    if ((elem & 0xff000000) == 0 && (elem != color)) {
+                        elem |= 0xff000000;
+                        imageBuffer.setElem(i, elem);
+                    }
+                }
+
                 WritableRaster writableRaster = Raster.createPackedRaster(imageBuffer, imageWidth, imageHeight, imageWidth, MASK, null);
                 BufferedImage image = new BufferedImage(colorModel, writableRaster, true, null);
+
                 icon = new ImageIcon(image);
             }
         }

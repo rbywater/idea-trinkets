@@ -44,16 +44,19 @@ public final class IContextMenuImpl implements IContextMenu {
         return IContextMenuItem.EMPTY_ARRAY;
     }
 
-    public void invokeItem(IContextMenuItem item) {
+    public void invokeItem(Component owner, IContextMenuItem item) {
+        while (owner != null && owner.isLightweight()) {
+            owner = owner.getParent();
+        }
         IContextMenuItem[] path = item.getParentPath();
         int[] menuPath = new int[path.length];
         for (int i = 0; i < path.length; i++) {
             menuPath[i] = path[i].getId();
         }
-        invokeItem0(filePaths, menuPath, item.getId());
+        invokeItem0(owner, filePaths, menuPath, item.getId());
     }
 
     private native IContextMenuItem[] getItems0(Component owner, String[] filePath, int[] menuPath);
 
-    private native void invokeItem0(String[] filePath, int[] menuPath, int item);
+    private native void invokeItem0(Component owner, String[] filePath, int[] menuPath, int item);
 }
