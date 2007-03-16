@@ -95,6 +95,57 @@ HWND GetAWTWindow(JNIEnv *env, jobject component) {
 	return hWnd;
 }
 
+jintArray JNU_BitmapToJNIArray(JNIEnv *env, HDC hDC, HBITMAP hBitmap, UINT width, UINT height) {
+    jintArray pixelArray = NULL;
+
+	if (hBitmap != NULL ) {
+		if (width > 0 && height > 0) {
+			// Get bitmap bits
+			BITMAPINFO bmi;
+			memset(&bmi, 0, sizeof(BITMAPINFO));
+			bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmi.bmiHeader.biWidth = width;
+			bmi.bmiHeader.biHeight = -height;
+			bmi.bmiHeader.biPlanes = 1;
+			bmi.bmiHeader.biBitCount = 32;
+			bmi.bmiHeader.biCompression = BI_RGB;
+
+			jintArray localPixelArray = (jintArray)env->NewIntArray(width * height);
+			if (localPixelArray == NULL) {
+				return NULL; // Exception thrown
+			}
+			pixelArray = (jintArray)env->NewGlobalRef(localPixelArray);
+			if (pixelArray == NULL) {
+				return NULL; // Exception thrown
+			}
+			env->DeleteLocalRef(localPixelArray); 
+			localPixelArray = NULL;
+
+			jboolean isCopy;
+			jint *pixels = env->GetIntArrayElements(pixelArray, &isCopy);
+			::GetDIBits(hDC, hBitmap, 0, height, (LPVOID)pixels, &bmi, DIB_RGB_COLORS);
+
+			// Delete bitmap
+			::DeleteObject(hBitmap);
+
+			env->ReleaseIntArrayElements(pixelArray, pixels, 0);
+		}
+	}
+
+    return pixelArray;
+}
+
+jintArray FixOwnerDrawItem(JNIEnv *env, CContextMenuHelper *cm, HMENU hMenu, UINT index, SIZE *imageSize) {
+	HBITMAP hBitmap = cm->InitializeOwnerDrawItem(hMenu, index, imageSize);
+    return JNU_BitmapToJNIArray(env, cm->m_hDC, hBitmap, imageSize->cx, imageSize->cy);
+}
+
+jintArray FixCheckMarkItem(JNIEnv *env, CContextMenuHelper *cm, HMENU hMenu, UINT index) {
+	HBITMAP hBitmap = cm->InitializeCheckMarkItem(hMenu, index);
+    return JNU_BitmapToJNIArray(env, cm->m_hDC, hBitmap, 16, 16);
+}
+
+
 JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_getItems0(JNIEnv *env, jobject obj, jobject awtOwner, jobjectArray filePaths, jintArray menuPath) {
 	// Initialize COM
 	if (!SUCCEEDED(OleInitialize(NULL))) {
@@ -116,21 +167,19 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
 	UINT nMenuPaths = env->GetArrayLength(menuPath);
 
 	jobjectArray result = NULL;
-	CContextMenuHelper cmHelper;
-	IContextMenu* pcm;
-	UINT cmVersion = 1;
-
 	HWND hWnd = GetAWTWindow(env, awtOwner);
-	if (SUCCEEDED(cmHelper.SHGetContextMenu(hWnd, files, (void**)&pcm, cmVersion))) {
+
+    CContextMenuHelper *cm = new CContextMenuHelper(hWnd, files);
+	if (cm->m_lpcm != NULL) {
 		HMENU hMenu = CreatePopupMenu();
 		if (hMenu != NULL) {
-			if (SUCCEEDED(pcm->QueryContextMenu(hMenu, 0, 0, 0xFFFFFFFF, CMF_EXPLORE))) {
+			if (SUCCEEDED(cm->m_lpcm->QueryContextMenu(hMenu, 0, 0, 0xFFFFFFFF, CMF_EXPLORE))) {
     
 				// Browse for parent
 				jint *menuPathElements = env->GetIntArrayElements(menuPath, 0);
 				HMENU hParent = hMenu;
 				for (UINT i = 0; hParent != NULL && i < nMenuPaths; i++) {
-					hParent = cmHelper.SubMenu(hParent, menuPathElements[i], pcm, cmVersion);
+					hParent = cm->FindMenuItem(hParent, menuPathElements[i]);
 				}
 				env->ReleaseIntArrayElements(menuPath, menuPathElements, 0);
 
@@ -162,22 +211,28 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
 						return NULL; // exception thrown
 					}                
 					
-					HDC hDC = NULL;
-					if (hWnd != NULL && ::IsWindowVisible(hWnd)) {
-						hDC = ::GetDC(hWnd);
-					}
-
 					// Allocate array 
 					result = env->NewObjectArray(nItems, menuItemClass, NULL);
 					if (result == NULL) {
 						return NULL; // out of memory error thrown
 					}
 					for (int iItem = 0; iItem < nItems; iItem++) {
+						SIZE imageSize = {0, 0};
+
+                        jintArray pixelArray = FixOwnerDrawItem(env, cm, hParent, iItem, &imageSize);
+                        if (pixelArray == NULL) {
+                            pixelArray = FixCheckMarkItem(env, cm, hParent, iItem);
+                            if (pixelArray != NULL) {
+                                imageSize.cx = 16;
+                                imageSize.cy = 16;
+                            }
+                        }
+
 						ZeroMemory(&mii, sizeof(mii));
 						ZeroMemory(szName, sizeof(char) * (MAX_PATH + 1));
 
 						mii.cbSize = sizeof(mii);
-						mii.fMask = MIIM_SUBMENU | MIIM_ID | MIIM_TYPE | MIIM_DATA;
+						mii.fMask = MIIM_SUBMENU | MIIM_ID | MIIM_TYPE;
 						mii.dwTypeData = szName;
 						mii.cch = sizeof(szName);
 						::GetMenuItemInfo(hParent, iItem, TRUE, &mii);
@@ -185,7 +240,6 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
 						jstring itemText;
 						jstring itemDescription;
 						jobject imageDataBuffer = NULL;
-						SIZE imageSize = {0, 0};
 
 						if (mii.fType & MF_SEPARATOR) {
 							itemText = WindowsTojstring(env, "${separator}");
@@ -201,60 +255,11 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
 								itemText = WindowsTojstring(env, "${unknown}");
 							}
 
-							if (hDC != NULL) {
-								HBITMAP hBitmap = NULL;
-								HDC hMemoryDC = ::CreateCompatibleDC(hDC);
-
-								if (SUCCEEDED(cmHelper.GetOwnerDrawBitmap(hParent, mii, pcm, cmVersion, hMemoryDC, imageSize, hBitmap))) {
-									if (hBitmap != NULL ) {
-										if (imageSize.cx > 0 && imageSize.cy > 0) {
-											// Get bitmap bits
-											BITMAPINFO bmi;
-											memset(&bmi, 0, sizeof(BITMAPINFO));
-											bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-											bmi.bmiHeader.biWidth = imageSize.cx;
-											bmi.bmiHeader.biHeight = -imageSize.cy;
-											bmi.bmiHeader.biPlanes = 1;
-											bmi.bmiHeader.biBitCount = 32;
-											bmi.bmiHeader.biCompression = BI_RGB;
-
-											jintArray localPixelArray = (jintArray)env->NewIntArray(imageSize.cx * imageSize.cy);
-											if (localPixelArray == NULL) {
-												return NULL; // Exception thrown
-											}
-											jintArray pixelArray = (jintArray)env->NewGlobalRef(localPixelArray);
-											if (pixelArray == NULL) {
-												return NULL; // Exception thrown
-											}
-											env->DeleteLocalRef(localPixelArray); 
-											localPixelArray = NULL;
-
-											jboolean isCopy;
-											jint *pixels = env->GetIntArrayElements(pixelArray, &isCopy);
-											::GetDIBits(hMemoryDC, hBitmap, 0, imageSize.cy, (LPVOID)pixels, &bmi, DIB_RGB_COLORS);
-
-											// Delete bitmap
-											::DeleteObject(hBitmap);
-
-											// Create buffered image
-											imageDataBuffer = env->NewObject(idbClass, idbCid, pixelArray, imageSize.cx * imageSize.cy);
-											if (imageDataBuffer == NULL) {
-												return NULL; // Exception thrown
-											}
-
-											env->ReleaseIntArrayElements(pixelArray, pixels, 0);
-										}
-									}
-								}
-
-								::DeleteDC(hMemoryDC);
-							}
-
 							// Get item description
 							ZeroMemory(szHelpText, sizeof(char) * (MAX_PATH + 1));
 
 							// try with Unicode first (it seems Explorer does so)
-							HRESULT hr = pcm->GetCommandString(mii.wID, GCS_HELPTEXTA, NULL, (LPSTR)szHelpText, MAX_PATH);
+							HRESULT hr = cm->m_lpcm->GetCommandString(mii.wID, GCS_HELPTEXTA, NULL, (LPSTR)szHelpText, MAX_PATH);
 							if (szHelpText != NULL) {
 								// buffer was used
 								itemDescription = WindowsTojstring(env, szHelpText);
@@ -263,6 +268,14 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
 							}
 						} 
 
+
+					    // Create buffered image
+                        if (pixelArray != NULL && imageSize.cx > 0 && imageSize.cy > 0) {
+					        imageDataBuffer = env->NewObject(idbClass, idbCid, pixelArray, imageSize.cx * imageSize.cy);
+					        if (imageDataBuffer == NULL) {
+						        return NULL; // Exception thrown
+					        }
+                        }
 
 						// Create new menu item
 						jobject item = env->NewObject(menuItemClass, cid, mii.wID, itemText, itemDescription, mii.hSubMenu != NULL, imageDataBuffer, imageSize.cx, imageSize.cy);
@@ -282,17 +295,13 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
 					// Free local references
 					env->DeleteLocalRef(menuItemClass);
 					env->DeleteLocalRef(idbClass);
-					// Delete context
-					if (hDC != NULL) {
-						::ReleaseDC(hWnd, hDC);
-					}
 				}
 			}
 			DestroyMenu(hMenu);
 		}
-		pcm->Release();
 	}
 
+    delete cm;
 	// Free 
 	for (i = 0; i < files.size(); i++) {
 		free((LPVOID)files[i]);
@@ -322,19 +331,17 @@ JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_invok
 
 	UINT nMenuPaths = env->GetArrayLength(menuPath);
 
-	CContextMenuHelper cmHelper;
-	UINT cmVersion;
-	IContextMenu* pcm;
-	if (SUCCEEDED(cmHelper.SHGetContextMenu(NULL, files, (void**)&pcm, cmVersion))) {
+	CContextMenuHelper *cm = new CContextMenuHelper(NULL, files);
+	if (cm->m_lpcm != NULL) {
 		HMENU hMenu = CreatePopupMenu();
 		if (hMenu != NULL) {
-			if (SUCCEEDED(pcm->QueryContextMenu(hMenu, 0, 0, 0xFFFFFFFF, CMF_EXPLORE))) {
+			if (SUCCEEDED(cm->m_lpcm->QueryContextMenu(hMenu, 0, 0, 0xFFFFFFFF, CMF_EXPLORE))) {
 
 				// Browse for parent
 				jint *menuPathElements = env->GetIntArrayElements(menuPath, 0);
 				HMENU hParent = hMenu;
 				for (UINT i = 0; hParent != NULL && i < nMenuPaths; i++) {
-					hParent = cmHelper.SubMenu(hParent, menuPathElements[i], pcm, cmVersion);
+					hParent = cm->FindMenuItem(hParent, menuPathElements[i]);
 				}
 				env->ReleaseIntArrayElements(menuPath, menuPathElements, 0);
 
@@ -345,13 +352,13 @@ JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_invok
 					info.nShow = SW_SHOWNORMAL;
 					info.lpVerb = MAKEINTRESOURCE(item);
 
-					pcm->InvokeCommand(&info);
+					cm->m_lpcm->InvokeCommand(&info);
 				}
 			}
 			DestroyMenu(hMenu);
 		}
-		pcm->Release();
 	}
+    delete cm;
 	// Free
 	for (i = 0; i < files.size(); i++) {
 		free((LPVOID)files[i]);

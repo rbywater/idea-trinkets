@@ -1,6 +1,5 @@
 package org.trinkets.win32.shell.impl;
 
-import com.intellij.util.ArrayUtil;
 import org.trinkets.win32.shell.IContextMenu;
 import org.trinkets.win32.shell.IContextMenuItem;
 
@@ -17,6 +16,7 @@ public final class IContextMenuImpl implements IContextMenu {
         System.loadLibrary("IContextMenu_JNI");
     }
 
+    private static final int[] EMPTY_INT_ARRAY = {};
     private final String[] filePaths;
 
     public IContextMenuImpl(String[] filePaths) {
@@ -27,7 +27,7 @@ public final class IContextMenuImpl implements IContextMenu {
         while (owner != null && owner.isLightweight()) {
             owner = owner.getParent();
         }
-        int[] menuPath = path != null ? new int[path.length] : ArrayUtil.EMPTY_INT_ARRAY;
+        int[] menuPath = path != null ? new int[path.length] : EMPTY_INT_ARRAY;
         for (int i = 0; i < path.length; i++) {
             menuPath[i] = path[i].getId();
         }

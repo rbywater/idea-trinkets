@@ -2,6 +2,13 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+// This is implementation writed with looking into
+// sources of WndTabs by Oz Solomonovich.
+// Thanks to Oz! :)
+// Also thanks to Dmitry Jemerov (yole), who pointed to Oz sources!
+//  -- Alexey Efimov (aefimov.box@gmail.com)
+// 
+
 #include "stdafx.h"
 #include "ContextMenuHelper.h"
 
@@ -29,7 +36,7 @@ LPITEMIDLIST CContextMenuHelper::CopyPIDL(LPCITEMIDLIST pidl, IMalloc *pm) {
     return pidlNew;
 }
 
-HRESULT CContextMenuHelper::SHGetContextMenu(HWND hWnd, std::vector<LPCTSTR> files, LPVOID* ppv, UINT &cmVersion) {
+HRESULT CContextMenuHelper::SHGetContextMenu(std::vector<LPCTSTR> files) {
     HRESULT hr;
     IMalloc *pm = NULL;
     IShellFolder *pDesktop = NULL;
@@ -50,7 +57,7 @@ HRESULT CContextMenuHelper::SHGetContextMenu(HWND hWnd, std::vector<LPCTSTR> fil
                 // Convert to Unicode
                 memset(fwname, L'\0', (MAX_PATH + 1) * sizeof(WCHAR));
                 MultiByteToWideChar(CP_THREAD_ACP, 0, lpszFilePath, -1, fwname, MAX_PATH);
-                if (SUCCEEDED(hr = pDesktop->ParseDisplayName(hWnd, NULL, fwname, &cch, &pidl, &attrs))) {
+                if (SUCCEEDED(hr = pDesktop->ParseDisplayName(m_hWnd, NULL, fwname, &cch, &pidl, &attrs))) {
                     LPITEMIDLIST pidlItem = NULL;
                     if (SUCCEEDED(hr = SHBindToParentEx((LPCITEMIDLIST)pidl, IID_IShellFolder, (void **)&psf, (LPCITEMIDLIST *) &pidlItem, pDesktop, pm))) {
                         pidls.push_back(CopyPIDL(pidlItem, pm));
@@ -67,24 +74,7 @@ HRESULT CContextMenuHelper::SHGetContextMenu(HWND hWnd, std::vector<LPCTSTR> fil
                 }
             }
             if (SUCCEEDED(hr) && psfFolder != NULL) {
-                IContextMenu *pcm;
-                if (SUCCEEDED(psfFolder->GetUIObjectOf(hWnd, pidls.size(), const_cast<LPCITEMIDLIST*>(pidls.begin()), IID_IContextMenu, NULL, (void**)&pcm))) {
-                    cmVersion = 1;
-                    IContextMenu3 *pcm3;
-                    if (SUCCEEDED(hr = pcm->QueryInterface(IID_IContextMenu3, (void**)&pcm3))) {
-                        pcm->Release();
-                        pcm = pcm3;
-                        cmVersion = 3;
-                    } else {
-                        IContextMenu2 *pcm2;
-                        if (SUCCEEDED(hr = pcm->QueryInterface(IID_IContextMenu2, (void**)&pcm2))) {
-                            pcm->Release();
-                            pcm = pcm2;
-                            cmVersion = 2;
-                        }
-                    }
-                    *ppv = (VOID*)pcm;
-                }
+                hr = psfFolder->GetUIObjectOf(m_hWnd, pidls.size(), const_cast<LPCITEMIDLIST*>(pidls.begin()), IID_IContextMenu, NULL, (void**)&m_lpcm);
 				psfFolder->Release();
             }
             FreeItemIDList(pidls, pm);
@@ -137,10 +127,17 @@ HRESULT CContextMenuHelper::SHBindToParentEx(LPCITEMIDLIST pidl, REFIID riid, LP
     return hr;
 }
 
-HMENU CContextMenuHelper::SubMenu(HMENU hMenu, UINT wID, IContextMenu *pcm, UINT cmVersion) {
+HMENU CContextMenuHelper::FindMenuItem(HMENU hMenu, UINT wID) {
+    HMENU hSubMenu = NULL;
+	HRESULT hr;
+
+    IContextMenu2* pcm2;
+    if (!SUCCEEDED(hr = m_lpcm->QueryInterface(IID_IContextMenu2, (LPVOID*)&pcm2))) {
+        pcm2 = NULL;
+    }
 	MENUITEMINFO mii;
 	int nItems = ::GetMenuItemCount(hMenu);
-	for (UINT i = 0; i < nItems; i++) {
+	for (UINT i = 0; hSubMenu == NULL && i < nItems; i++) {
         memset (&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_SUBMENU | MIIM_ID | MIIM_TYPE;
@@ -148,67 +145,220 @@ HMENU CContextMenuHelper::SubMenu(HMENU hMenu, UINT wID, IContextMenu *pcm, UINT
         ::GetMenuItemInfo(hMenu, i, TRUE, &mii);
 
 		if (mii.wID == wID && mii.hSubMenu != NULL) {
-            if (cmVersion >= 2) {
-                ((IContextMenu2*)pcm)->HandleMenuMsg(WM_INITMENUPOPUP, (WPARAM)mii.hSubMenu, (LPARAM)mii.wID);
+            if (pcm2 != NULL) {
+                pcm2->HandleMenuMsg(WM_INITMENUPOPUP, (WPARAM)mii.hSubMenu, (LPARAM)mii.wID);
             }
-			return mii.hSubMenu;
+			hSubMenu = mii.hSubMenu;
 		}
 	}
-	return NULL;
+    if (pcm2 != NULL) {
+        pcm2->Release();
+    }
+	return hSubMenu;
+}
+
+int CALLBACK CContextMenuHelper::EnhMetaFileProc(
+  HDC hDC,                      // handle to DC
+  HANDLETABLE *lpHTable,        // metafile handle table
+  CONST ENHMETARECORD *lpEMFR,  // metafile record
+  int nObj,                     // count of objects
+  LPARAM lpData                 // optional data
+) {
+	EMREXTTEXTOUTA& emrTOA = *(EMREXTTEXTOUTA*)lpEMFR;
+	EMREXTTEXTOUTW& emrTOW = *(EMREXTTEXTOUTW*)lpEMFR;
+	CContextMenuHelper* pThis = (CContextMenuHelper*)lpData;
+
+	switch (lpEMFR->iType) {
+	case EMR_EXTTEXTOUTA:
+		if (emrTOA.emrtext.nChars > 0) {
+			pThis->m_iLeftOfText = emrTOA.rclBounds.left;
+			lstrcpynA(pThis->m_pBuffer, (LPSTR)((LPBYTE)lpEMFR + emrTOA.emrtext.offString),
+				__min(emrTOA.emrtext.nChars, MAX_PATH));
+			return FALSE; // stop enum
+		}
+		break;
+
+	case EMR_EXTTEXTOUTW:
+		if (emrTOW.emrtext.nChars > 0) {
+			pThis->m_iLeftOfText = emrTOW.rclBounds.left;
+			WideCharToMultiByte(CP_ACP, 0, (LPWSTR)((LPBYTE)lpEMFR + emrTOW.emrtext.offString),
+				emrTOW.emrtext.nChars, pThis->m_pBuffer, MAX_PATH, NULL, NULL);
+			return FALSE; // stop enum
+		}
+		break;
+	}
+	
+	return TRUE; // go on
 }
 
 
-HRESULT CContextMenuHelper::GetOwnerDrawBitmap(HMENU hMenu, MENUITEMINFO mii, IContextMenu *pcm, UINT cmVersion, HDC hDC, SIZE &size, HBITMAP &hBitmap) {
+HBITMAP CContextMenuHelper::InitializeOwnerDrawItem(HMENU hMenu, UINT index, SIZE *lpSize) {
+    m_iLeftOfText = 0;
+    m_pBuffer = NULL;
+
+    HBITMAP hBitmap = NULL;
 	HRESULT hr;
 
-	if (cmVersion >= 2) {
-		// get item dimensions
-		MEASUREITEMSTRUCT mis;
-		ZeroMemory(&mis, sizeof(MEASUREITEMSTRUCT));
-		mis.CtlType = ODT_MENU;
-		mis.itemData = mii.dwItemData;
-		mis.itemID = mii.wID;
-		// fake ownerdraw msg
-		if (SUCCEEDED(hr = ((IContextMenu2*)pcm)->HandleMenuMsg(WM_MEASUREITEM, 0, (LPARAM)&mis))) {
-			// draw item on a bitmap
-			hBitmap = ::CreateCompatibleBitmap(hDC, mis.itemWidth, mis.itemHeight);
-			if (hBitmap != NULL) {
-				HBITMAP hPrevBitmap = (HBITMAP) SelectObject(hDC, hBitmap);
+    IContextMenu2* pcm2;
+    if (SUCCEEDED(hr = m_lpcm->QueryInterface(IID_IContextMenu2, (LPVOID*)&pcm2))) {
+        UINT nID = ::GetMenuItemID(hMenu, index);
 
-				RECT r = { 0, 0, mis.itemWidth, mis.itemHeight };
-				COLORREF crBack = ::GetSysColor(COLOR_MENU);
-				::FillRect(hDC, &r, ::CreateSolidBrush(crBack));
-				::SetWindowOrgEx(hDC, 0, 0, NULL);
+	    // get item data
+	    MENUITEMINFO mii;
+	    ZeroMemory(&mii, sizeof(MENUITEMINFO));
+	    mii.cbSize = sizeof(MENUITEMINFO);
+	    mii.fMask = MIIM_DATA;
+        if (::GetMenuItemInfo(hMenu, index, TRUE, &mii) && mii.dwItemData != NULL) {
+		    // get item dimensions
+		    MEASUREITEMSTRUCT mis;
+		    ZeroMemory(&mis, sizeof(MEASUREITEMSTRUCT));
+		    mis.CtlType = ODT_MENU;
+		    mis.itemData = mii.dwItemData;
+		    mis.itemID = nID;
+		    // fake ownerdraw msg
+		    if (SUCCEEDED(hr = (pcm2->HandleMenuMsg(WM_MEASUREITEM, 0, (LPARAM)&mis)))) {
+                if (mis.itemWidth && mis.itemHeight > 0) {
+                    HDC hDC = CreateEnhMetaFile(NULL, NULL, NULL, NULL);
 
-				// fake ownerdraw msg
-				DRAWITEMSTRUCT dis;
-				ZeroMemory(&dis, sizeof(DRAWITEMSTRUCT));
-				dis.CtlType = ODT_MENU;
-				dis.itemID = mii.wID;
-				dis.itemData = mii.dwItemData;
-				dis.itemAction = ODA_DRAWENTIRE;
-				dis.hwndItem = (HWND)hMenu;
-				dis.hDC = hDC;
-				dis.rcItem = r;
-				if (SUCCEEDED(hr = ((IContextMenu2*)pcm)->HandleMenuMsg(WM_DRAWITEM, 0, (LPARAM)&dis))) {
-					size.cx = mis.itemWidth;
-					size.cy = mis.itemHeight;
-  					SelectObject(hDC, hPrevBitmap);
-				}
-			}
-		}
-	}
+				    RECT r = { 0, 0, mis.itemWidth, mis.itemHeight };
+                    BOOL bStringFound = FALSE;
 
-	return hr;
+				    // fake ownerdraw msg
+				    DRAWITEMSTRUCT dis;
+				    ZeroMemory(&dis, sizeof(DRAWITEMSTRUCT));
+				    dis.CtlType = ODT_MENU;
+				    dis.itemID = nID;
+				    dis.itemData = mii.dwItemData;
+				    dis.itemAction = ODA_DRAWENTIRE;
+				    dis.hwndItem = (HWND)hMenu;
+				    dis.hDC = hDC;
+				    dis.rcItem = r;
+
+				    if (SUCCEEDED(hr = pcm2->HandleMenuMsg(WM_DRAWITEM, 0, (LPARAM)&dis))) {
+                        HENHMETAFILE hEMF = CloseEnhMetaFile(hDC);
+
+                        // enum metafile records and search for strings
+	                    char buf[MAX_PATH] = { 0 };
+	                    m_pBuffer = buf;
+	                    m_iLeftOfText = 0;
+                        ::EnumEnhMetaFile(NULL, hEMF, EnhMetaFileProc, this, NULL);
+                        ::DeleteEnhMetaFile(hEMF);
+	                    m_pBuffer = NULL;
+
+                        if (buf[0] != 0) {
+                            bStringFound = ::ModifyMenu(hMenu, index, MF_BYPOSITION | MF_STRING, nID, buf);
+                        }
+                    }
+
+                    // Try to get bitmap
+                    hDC = ::CreateCompatibleDC(m_hDC);
+                    if (hDC != NULL) {
+		                // obtain image rect
+                        if (bStringFound) {
+                            if (m_iLeftOfText > 0) {
+			                    r.left = (m_iLeftOfText - 16) / 2;
+			                    r.top = (mis.itemHeight - 16) / 2;
+                            } else {
+			                    r.top = (mis.itemHeight - 16) / 2;
+			                    r.left = r.top;
+                            }
+		                    r.right = r.left + 16;
+		                    r.bottom = r.top + 16;
+                        }
+
+                        if (lpSize != NULL) {
+					        lpSize->cx = r.right - r.left;
+					        lpSize->cy = r.bottom - r.top;
+                        }
+                        hBitmap = ::CreateCompatibleBitmap(m_hDC, r.right - r.left, r.bottom - r.top);
+			            if (hBitmap != NULL) {
+                            HBITMAP hPrevBitmap = (HBITMAP)::SelectObject(hDC, hBitmap);
+
+                		    // draw item on a bitmap
+		                    COLORREF crBack = ::GetSysColor(COLOR_MENU);
+
+                            ::SetWindowOrgEx(hDC, r.left, r.top, NULL);
+                            ::FillRect(hDC, &r, ::CreateSolidBrush(crBack));
+
+                            dis.hDC = hDC;
+        				    pcm2->HandleMenuMsg(WM_DRAWITEM, 0, (LPARAM)&dis);
+                        
+                            ::SelectObject(hDC, hPrevBitmap);
+                        }
+                        ::DeleteDC(hDC);
+                    }
+                }
+		    }
+        }
+
+        pcm2->Release();
+    }
+
+	return hBitmap;
 }
 
+HBITMAP CContextMenuHelper::InitializeCheckMarkItem(HMENU hMenu, UINT index) {
+	// get item data
+	MENUITEMINFO mii;
+	ZeroMemory(&mii, sizeof(MENUITEMINFO));
+	mii.cbSize = sizeof(MENUITEMINFO);
+	mii.fMask = MIIM_CHECKMARKS;
+    if (::GetMenuItemInfo(hMenu, index, TRUE, &mii)) {
+        HBITMAP hBitmap = NULL;
+        if (mii.hbmpChecked != NULL) {
+		    hBitmap = mii.hbmpChecked;
+        } else if (mii.hbmpUnchecked != NULL) {
+		    hBitmap = mii.hbmpUnchecked;
+        }
+
+        if (hBitmap != NULL) {
+	        // get bitmap size
+	        // draw item on a bitmap
+	        COLORREF crBack = ::GetSysColor(COLOR_MENU);
+            HDC hMemoryDC = ::CreateCompatibleDC(m_hDC);
+            HDC hBitmapDC = ::CreateCompatibleDC(m_hDC);
+
+            HBITMAP hImage = ::CreateCompatibleBitmap(m_hDC, 16, 16);
+            HBITMAP old1 = (HBITMAP)::SelectObject(hMemoryDC, hImage);
+            HBITMAP old2 = (HBITMAP)::SelectObject(hBitmapDC, hBitmap);
+
+            RECT r = { 0, 0, 16, 16 };
+            FillRect(hMemoryDC, &r, ::CreateSolidBrush(crBack));
+	        // center bitmap
+            ::BitBlt(hMemoryDC, 0, 0, 16, 16, hBitmapDC, 0, 0, SRCCOPY);
+            ::SelectObject(hMemoryDC, old1);
+            ::SelectObject(hBitmapDC, old2);
+
+            ::DeleteDC(hMemoryDC);
+            ::DeleteDC(hBitmapDC);
+
+            return hImage;
+        }
+    }
+
+    return NULL;
+}
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CContextMenuHelper::CContextMenuHelper() {
+CContextMenuHelper::CContextMenuHelper(HWND hWnd, std::vector<LPCTSTR> files) {
+    m_hWnd = hWnd;
+    m_hDC = ::GetDC(hWnd);
+    m_iLeftOfText = 0;
+    m_pBuffer = NULL;
+    m_lpcm = NULL;
+    if (!SUCCEEDED(SHGetContextMenu(files))) {
+        m_lpcm = NULL;
+    }
 }
 
 CContextMenuHelper::~CContextMenuHelper() {
+    if (m_lpcm != NULL) {
+        m_lpcm->Release();
+    }
+    if (m_hDC != NULL) {
+        ::ReleaseDC(m_hWnd, m_hDC);
+    }
 }
