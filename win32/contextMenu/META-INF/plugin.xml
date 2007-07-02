@@ -5,7 +5,7 @@
     <description>Windows Explorer context menu for files and folders within IDEA project. This plugin idea is came from
         known FAR Manager plugin EMenu.
     </description>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <vendor>Alexey Efimov</vendor>
     <idea-version since-build="6708"/>
 

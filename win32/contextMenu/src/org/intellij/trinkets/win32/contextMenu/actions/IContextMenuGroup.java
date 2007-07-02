@@ -10,14 +10,17 @@ import org.intellij.trinkets.win32.contextMenu.Plugin;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.trinkets.util.LibraryLoader;
 import org.trinkets.win32.shell.IContextMenu;
-import org.trinkets.win32.shell.IContextMenuBuilder;
 import org.trinkets.win32.shell.IContextMenuItem;
+import org.trinkets.win32.shell.IContextMenuManager;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,15 +30,6 @@ import java.util.List;
  */
 @SuppressWarnings({"ComponentNotRegistered"})
 public class IContextMenuGroup extends ActionGroup {
-    static {
-        Plugin.LOADER.registerNativeSupport("org.trinkets.win32.shell.impl.IContextMenuImpl");
-    }
-
-    IContextMenuBuilder BUILDER =
-            (IContextMenuBuilder) Plugin.LOADER.newInstanceNativeSupport(
-                    "org.trinkets.win32.shell.impl.IContextMenuBuilderImpl",
-                    new Class[]{LibraryLoader.class}, new Object[]{Plugin.LOADER});
-
     @NonNls
     private static final String SEPARATOR_TEXT = "${separator}";
 
@@ -47,6 +41,15 @@ public class IContextMenuGroup extends ActionGroup {
 
     @NonNls
     private static final String UNKNOWN_TEXT = "${unknown}";
+
+    /**
+     * IContextMenu manager
+     */
+    private final IContextMenuManager icmManager = new IContextMenuManager(Plugin.JNI_CACHE_DIR);
+
+    private Reference<Project> lastProject;
+    private Reference<VirtualFile[]> lastVirtualFiles;
+    private AnAction[] actions = AnAction.EMPTY_ARRAY;
 
     private static String getItemText(IContextMenuItem item) {
         String s = item.getText();
@@ -73,52 +76,55 @@ public class IContextMenuGroup extends ActionGroup {
         return icon;
     }
 
-    public AnAction[] getChildren(@Nullable AnActionEvent event) {
-        if (SystemInfo.isWindows && event != null) {
+    public final AnAction[] getChildren(@Nullable AnActionEvent event) {
+        if (event != null) {
             Project project = event.getData(DataKeys.PROJECT);
-            if (project != null) {
-                JFrame frame = WindowManagerEx.getInstance().getFrame(project);
-                VirtualFile[] files = event.getData(DataKeys.VIRTUAL_FILE_ARRAY);
-                if (files != null && files.length > 0) {
-                    String[] paths = new String[files.length];
-                    for (int i = 0; i < files.length; i++) {
-                        paths[i] = VfsUtil.virtualToIoFile(files[i]).getAbsolutePath();
-                    }
-                    List<AnAction> actions = new ArrayList<AnAction>();
-                    IContextMenu menu = BUILDER.createContextMenu(paths);
-                    IContextMenuItem[] items = menu.getItems(frame, IContextMenuItem.EMPTY_ARRAY);
-                    for (IContextMenuItem item : items) {
-                        String text = item.getText();
-                        if (SEPARATOR_TEXT.equals(text)) {
-                            actions.add(Separator.getInstance());
-                        } else if (!UNKNOWN_TEXT.equals(text)) {
-                            if (item.isSubMenu()) {
-                                actions.add(new ContextMenuItemActionGroup(menu, item));
-                            } else {
-                                actions.add(new ContextMenuItemAction(menu, item));
-                            }
-                        }
-                    }
-                    return actions.toArray(AnAction.EMPTY_ARRAY);
-                }
+            VirtualFile[] files = event.getData(DataKeys.VIRTUAL_FILE_ARRAY);
+            if (project != null && files != null) {
+                set(project, files);
             }
         }
-        return AnAction.EMPTY_ARRAY;
+        return actions;
     }
 
-    public void update(AnActionEvent e) {
+    public final void update(AnActionEvent e) {
         super.update(e);
         if (SystemInfo.isWindows) {
             e.getPresentation().setVisible(true);
+            Project project = e.getData(DataKeys.PROJECT);
             VirtualFile[] files = e.getData(DataKeys.VIRTUAL_FILE_ARRAY);
-            e.getPresentation().setEnabled(files != null && files.length > 0);
+            e.getPresentation().setEnabled(project != null && files != null && files.length > 0);
         } else {
             e.getPresentation().setVisible(false);
             e.getPresentation().setEnabled(false);
         }
     }
 
-    private static class ContextMenuItemAction extends AnAction {
+    public void clear() {
+        actions = AnAction.EMPTY_ARRAY;
+        if (lastProject != null) {
+            lastProject.clear();
+        }
+        if (lastVirtualFiles != null) {
+            lastVirtualFiles.clear();
+        }
+    }
+
+    public synchronized void set(@NotNull Project project, @NotNull VirtualFile[] files) {
+        if (lastProject == null ||
+                lastProject.get() == null ||
+                !lastProject.get().equals(project) ||
+                lastVirtualFiles == null ||
+                lastVirtualFiles.get() == null ||
+                !Arrays.equals(lastVirtualFiles.get(), files)) {
+            clear();
+            actions = createMenu(project, files);
+            lastProject = new WeakReference<Project>(project);
+            lastVirtualFiles = new WeakReference<VirtualFile[]>(files);
+        }
+    }
+
+    private static final class ContextMenuItemAction extends AnAction {
         private final IContextMenu menu;
         private final IContextMenuItem item;
 
@@ -131,47 +137,64 @@ public class IContextMenuGroup extends ActionGroup {
         public void actionPerformed(AnActionEvent e) {
             Project project = e.getData(DataKeys.PROJECT);
             if (project != null) {
-                JFrame frame = WindowManagerEx.getInstance().getFrame(project);
-                menu.invokeItem(frame, item);
+                menu.invokeItem(null, item);
             }
         }
     }
 
-    private static class ContextMenuItemActionGroup extends ActionGroup {
-        private final IContextMenu menu;
-        private final IContextMenuItem item;
+    private static final class ContextMenuItemActionGroup extends ActionGroup {
+        private final AnAction[] children;
 
-        public ContextMenuItemActionGroup(@NotNull IContextMenu menu, @NotNull IContextMenuItem item) {
+        public ContextMenuItemActionGroup(Component frame, @NotNull IContextMenu menu, @NotNull IContextMenuItem item) {
             super(getItemText(item), true);
             Presentation presentation = getTemplatePresentation();
             presentation.setIcon(getItemIcon(item));
             presentation.setDescription(item.getDescription());
-            this.menu = menu;
-            this.item = item;
-        }
-
-        public AnAction[] getChildren(@Nullable AnActionEvent event) {
             List<AnAction> actions = new ArrayList<AnAction>();
-            if (event != null) {
-                Project project = event.getData(DataKeys.PROJECT);
-                if (project != null) {
-                    JFrame frame = WindowManagerEx.getInstance().getFrame(project);
-                    IContextMenuItem[] items = menu.getItems(frame, item.getPath());
-                    for (IContextMenuItem item : items) {
-                        String text = getItemText(item);
-                        if (SEPARATOR_TEXT.equals(text)) {
-                            actions.add(Separator.getInstance());
-                        } else if (!UNKNOWN_TEXT.equals(text)) {
-                            if (item.isSubMenu()) {
-                                actions.add(new ContextMenuItemActionGroup(menu, item));
-                            } else {
-                                actions.add(new ContextMenuItemAction(menu, item));
-                            }
-                        }
+            IContextMenuItem[] items = menu.getItems(frame, item.getPath());
+            for (IContextMenuItem child : items) {
+                String text = getItemText(child);
+                if (SEPARATOR_TEXT.equals(text)) {
+                    actions.add(Separator.getInstance());
+                } else if (!UNKNOWN_TEXT.equals(text)) {
+                    if (child.isSubMenu()) {
+                        actions.add(new ContextMenuItemActionGroup(frame, menu, child));
+                    } else {
+                        actions.add(new ContextMenuItemAction(menu, child));
                     }
                 }
             }
-            return actions.toArray(AnAction.EMPTY_ARRAY);
+            this.children = actions.toArray(new AnAction[actions.size()]);
+        }
+
+        public AnAction[] getChildren(@Nullable AnActionEvent event) {
+            return children;
         }
     }
+
+    @NotNull
+    private AnAction[] createMenu(@NotNull Project project, @NotNull VirtualFile[] files) {
+        String[] paths = new String[files.length];
+        for (int i = 0; i < files.length; i++) {
+            paths[i] = VfsUtil.virtualToIoFile(files[i]).getAbsolutePath();
+        }
+        JFrame frame = WindowManagerEx.getInstance().getFrame(project);
+        IContextMenu menu = icmManager.getMenu(paths);
+        IContextMenuItem[] items = menu.getItems(frame, IContextMenuItem.EMPTY_ARRAY);
+        List<AnAction> actions = new ArrayList<AnAction>(items.length);
+        for (IContextMenuItem item : items) {
+            String text = item.getText();
+            if (SEPARATOR_TEXT.equals(text)) {
+                actions.add(Separator.getInstance());
+            } else if (!UNKNOWN_TEXT.equals(text)) {
+                if (item.isSubMenu()) {
+                    actions.add(new ContextMenuItemActionGroup(frame, menu, item));
+                } else {
+                    actions.add(new ContextMenuItemAction(menu, item));
+                }
+            }
+        }
+        return actions.toArray(new AnAction[actions.size()]);
+    }
+
 }

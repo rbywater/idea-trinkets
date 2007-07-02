@@ -102,7 +102,7 @@ SOURCE=.\IContextMenu_JNI.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\org_trinkets_win32_shell_impl_IContextMenuImpl.cpp
+SOURCE=.\org_trinkets_win32_shell_IContextMenu_JNI.cpp
 # End Source File
 # Begin Source File
 
@@ -123,7 +123,7 @@ SOURCE=.\ContextMenuHelper.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\org_trinkets_win32_shell_impl_IContextMenuImpl.h
+SOURCE=.\org_trinkets_win32_shell_IContextMenu_JNI.h
 # End Source File
 # Begin Source File
 

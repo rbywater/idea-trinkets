@@ -1,7 +1,5 @@
 package org.trinkets.win32.shell;
 
-import org.trinkets.win32.shell.impl.IContextMenuImpl;
-
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -23,7 +21,7 @@ public class IContextMenuTest {
         frame.setVisible(true);
 
         System.loadLibrary("jawt");
-        IContextMenu menu = new IContextMenuImpl(new String[]{
+        IContextMenu menu = new IContextMenu_JNI(new String[]{
                 new File("IContextMenu_JNI.dll").getAbsolutePath(),
                 new File("IContextMenu_JNI.lib").getAbsolutePath()
         }

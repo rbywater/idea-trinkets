@@ -64,7 +64,7 @@ public final class IContextMenuItem {
     public IContextMenuItem[] getParentPath() {
         List<IContextMenuItem> path = new LinkedList<IContextMenuItem>();
         fillParentPath(path);
-        return path.toArray(EMPTY_ARRAY);
+        return path.toArray(new IContextMenuItem[path.size()]);
     }
 
     private void fillParentPath(List<IContextMenuItem> path) {
@@ -74,11 +74,12 @@ public final class IContextMenuItem {
         }
     }
 
+    @NotNull
     public IContextMenuItem[] getPath() {
         List<IContextMenuItem> path = new LinkedList<IContextMenuItem>();
         fillParentPath(path);
         path.add(this);
-        return path.toArray(EMPTY_ARRAY);
+        return path.toArray(new IContextMenuItem[path.size()]);
     }
 
     public DataBuffer getImageBuffer() {

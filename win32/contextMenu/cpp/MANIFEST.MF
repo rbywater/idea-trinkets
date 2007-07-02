@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+
+Name: bin/win32/IContextMenu_JNI.dll
+Platform: Windows
+
