@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "org_trinkets_win32_shell_impl_IContextMenuImpl.h"
+#include "org_trinkets_win32_shell_IContextMenu_JNI.h"
 #include "ContextMenuHelper.h"
 #include "jawt_md.h"
 #include <shlobj.h>
@@ -160,7 +160,7 @@ jintArray FixCheckMarkItem(JNIEnv *env, CContextMenuHelper *cm, HMENU hMenu, UIN
 }
 
 
-JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_getItems0(JNIEnv *env, jobject obj, jobject awtOwner, jobjectArray filePaths, jintArray menuPath) {
+JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_IContextMenu_1JNI_getItems0(JNIEnv *env, jobject obj, jobject awtOwner, jobjectArray filePaths, jintArray menuPath) {
     // Initialize COM
     if (!SUCCEEDED(OleInitialize(NULL))) {
         JNU_ThrowByName(env, "java/lang/IllegalStateException", "Cannot communicate with the shell because OLE cannot be initialized.");
@@ -321,7 +321,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuIm
     return result;
 };
 
-JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_impl_IContextMenuImpl_invokeItem0(JNIEnv *env, jobject obj, jobject awtOwner, jobjectArray filePaths, jintArray menuPath, jint item) {
+JNIEXPORT void JNICALL Java_org_trinkets_win32_shell_IContextMenu_1JNI_invokeItem0(JNIEnv *env, jobject obj, jobject awtOwner, jobjectArray filePaths, jintArray menuPath, jint item) {
     // Initialize COM
     if (!SUCCEEDED(OleInitialize(NULL))) {
         JNU_ThrowByName(env, "java/lang/IllegalStateException", "Cannot communicate with the shell because OLE cannot be initialized.");
