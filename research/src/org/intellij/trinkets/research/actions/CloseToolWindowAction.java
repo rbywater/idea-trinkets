@@ -11,7 +11,7 @@ import com.intellij.openapi.wm.ToolWindow;
  */
 public class CloseToolWindowAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
-        ToolWindow window = (ToolWindow) e.getDataContext().getData(ResearchConstants.RESEARCH_TOOL_WINDOW);
+        ToolWindow window = e.getData(ResearchKeys.RESEARCH_TOOL_WINDOW_KEY);
         if (window != null) {
             window.setAvailable(false, null);
         }
@@ -20,7 +20,7 @@ public class CloseToolWindowAction extends AnAction {
 
     public void update(AnActionEvent e) {
         super.update(e);
-        ToolWindow window = (ToolWindow) e.getDataContext().getData(ResearchConstants.RESEARCH_TOOL_WINDOW);
+        ToolWindow window = e.getData(ResearchKeys.RESEARCH_TOOL_WINDOW_KEY);
         e.getPresentation().setEnabled(window != null && window.isVisible());
     }
 }
