@@ -2,9 +2,8 @@ package org.intellij.trinkets.research.actions;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataConstants;
+import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import org.intellij.trinkets.research.ResearchManager;
 
 /**
@@ -14,9 +13,9 @@ import org.intellij.trinkets.research.ResearchManager;
  */
 public class ResearchAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
-        Editor editor = (Editor) e.getDataContext().getData(DataConstants.EDITOR);
+        Editor editor = e.getData(DataKeys.EDITOR);
         String searchString = getSearchString(editor);
-        ResearchManager researchManager = ResearchManager.getInstance((Project) e.getDataContext().getData(DataConstants.PROJECT));
+        ResearchManager researchManager = ResearchManager.getInstance(e.getData(DataKeys.PROJECT));
         researchManager.research(searchString);
     }
 
@@ -53,6 +52,6 @@ public class ResearchAction extends AnAction {
 
     public void update(AnActionEvent e) {
         super.update(e);
-        e.getPresentation().setEnabled(e.getDataContext().getData(DataConstants.PROJECT) != null);
+        e.getPresentation().setEnabled(e.getData(DataKeys.PROJECT) != null);
     }
 }

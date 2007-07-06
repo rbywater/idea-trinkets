@@ -2,9 +2,9 @@
 <idea-plugin>
     <name>Research</name>
     <description>Perform researching of current selection or word</description>
-    <version>0.1</version>
+    <version>0.2</version>
     <vendor>Alexey Efimov</vendor>
-    <idea-version since-build="5321"/>
+    <idea-version since-build="7041"/>
     <application-components>
         <component>
             <interface-class>org.intellij.trinkets.research.ResearchEngineManager</interface-class>
