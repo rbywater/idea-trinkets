@@ -2,7 +2,7 @@ package org.intellij.trinkets.tabStack.actions;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataConstants;
+import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.UIUtil;
@@ -15,14 +15,14 @@ public class PopStackAction extends AnAction {
     private static final Icon ICON_SURFACE = IconLoader.getIcon("/general/stack.png");
 
     public void actionPerformed(AnActionEvent e) {
-        Project project = (Project)e.getDataContext().getData(DataConstants.PROJECT);
+        Project project = e.getData(DataKeys.PROJECT);
         TabStackManager stackManager = TabStackManager.getInstance(project);
         stackManager.pop(true);
     }
 
     public void update(AnActionEvent e) {
         super.update(e);
-        Project project = (Project)e.getDataContext().getData(DataConstants.PROJECT);
+        Project project = e.getData(DataKeys.PROJECT);
         if (project != null) {
             TabStackManager stackManager = TabStackManager.getInstance(project);
             e.getPresentation().setEnabled(stackManager.getStackSize() > 0);
@@ -53,8 +53,8 @@ public class PopStackAction extends AnAction {
             g.setColor(LABEL_COLOR);
             String text = String.valueOf(count);
             g.drawString(text,
-                x + 6 + (8 - fontMetrics.stringWidth(text)) / 2,
-                y + 5 + fontMetrics.getAscent());
+                    x + 6 + (8 - fontMetrics.stringWidth(text)) / 2,
+                    y + 5 + fontMetrics.getAscent());
         }
 
         private static Font getSmallFont() {

@@ -3,9 +3,9 @@
     <name>TabStack</name>
     <description>Plugin for catching editor tabs spilling and puting ejected files into stack. Files from stack will be
         opened as soon as free place available in editor tabs.</description>
-    <version>1.0</version>
+    <version>1.1</version>
     <vendor>Alexey Efimov</vendor>
-    <idea-version since-build="4109"/>
+    <idea-version since-build="7041"/>
     <project-components>
         <component>
             <interface-class>org.intellij.trinkets.tabStack.TabStackManager</interface-class>
