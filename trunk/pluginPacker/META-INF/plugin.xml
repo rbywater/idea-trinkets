@@ -6,18 +6,13 @@
     <description>This plugin can pack plugin distributive for IntelliJ IDEA Plugins Central. It can also pack sources
         into common archive.
     </description>
-    <version>1.1</version>
+    <version>1.2</version>
     <vendor>Alexey Efimov</vendor>
-    <idea-version since-build="5692"/>
-    <project-components>
-        <component>
-            <interface-class>org.intellij.trinkets.pluginPacker.PluginPackerManager</interface-class>
-            <implementation-class>org.intellij.trinkets.pluginPacker.impl.PluginPackerManagerImpl</implementation-class>
-        </component>
-    </project-components>
+    <idea-version since-build="7041"/>
+    <resource-bundle>org.intellij.trinkets.pluginPacker.util.PluginPackerBundle</resource-bundle>
     <actions>
         <group>
-            <action class="org.intellij.trinkets.pluginPacker.actions.PackAction" id="PackPluginAction"
+            <action class="org.intellij.trinkets.pluginPacker.actions.PackAction" id="PackPlugin"
                     text="Pack Plugin..." icon="/nodes/pluginnotinstalled.png">
                 <keyboard-shortcut first-keystroke="control shift K" keymap="$default"/>
             </action>
