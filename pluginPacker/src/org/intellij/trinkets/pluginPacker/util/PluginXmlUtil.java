@@ -5,6 +5,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.idea.devkit.module.PluginModuleType;
 
 /**
@@ -13,6 +14,9 @@ import org.jetbrains.idea.devkit.module.PluginModuleType;
  * @author Alexey Efimov
  */
 public final class PluginXmlUtil {
+    @NonNls
+    private static final String SPACE_PATTERN = "\\s+";
+
     private PluginXmlUtil() {
     }
 
@@ -31,7 +35,7 @@ public final class PluginXmlUtil {
                     XmlTag nameTag = rootTag.findFirstSubTag("name");
                     if (nameTag != null) {
                         String trimmedText = nameTag.getValue().getTrimmedText();
-                        return StringUtil.capitalizeWords(trimmedText, true).replaceAll("\\s+", "");
+                        return StringUtil.capitalizeWords(trimmedText, true).replaceAll(SPACE_PATTERN, "");
                     }
                 }
             }

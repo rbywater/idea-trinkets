@@ -14,12 +14,14 @@ import javax.swing.*;
  * @author Alexey Efimov
  */
 public final class PluginPackerDialog extends DialogWrapper {
+    private Project project;
     private final Module[] modules;
     private final Module defaultModule;
     private PluginPackerForm form;
 
     public PluginPackerDialog(Project project, Module[] modules, Module defaultModule) {
         super(project, true);
+        this.project = project;
         this.modules = modules;
         this.defaultModule = defaultModule;
         init();
@@ -33,7 +35,7 @@ public final class PluginPackerDialog extends DialogWrapper {
     @Nullable
     protected JComponent createCenterPanel() {
         if (form == null) {
-            form = new PluginPackerForm(modules, defaultModule);
+            form = new PluginPackerForm(project, modules, defaultModule);
         }
         return form.getRoot();
     }

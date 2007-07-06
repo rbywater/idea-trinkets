@@ -1,11 +1,8 @@
-package org.intellij.trinkets.pluginPacker.impl;
+package org.intellij.trinkets.pluginPacker;
 
-import com.intellij.javaee.make.ManifestBuilder;
-import com.intellij.javaee.make.ModuleBuildProperties;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -25,18 +22,18 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.io.ZipUtil;
-import org.intellij.trinkets.pluginPacker.PluginPackerManager;
+import org.intellij.trinkets.pluginPacker.util.PluginPackerBundle;
 import org.intellij.trinkets.pluginPacker.util.PluginXmlUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.idea.devkit.build.PluginBuildConfiguration;
 import org.jetbrains.idea.devkit.build.PluginBuildUtil;
-import org.jetbrains.idea.devkit.build.PluginModuleBuildProperties;
+import org.jetbrains.idea.devkit.build.PrepareToDeployAction;
 
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -44,25 +41,41 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-final class PluginPackerManagerImpl extends PluginPackerManager implements ProjectComponent {
+/**
+ * Plugin packer project service.
+ *
+ * @author Alexey Efimov
+ */
+public class PluginPacker {
     @NonNls
     private static final String JAR_EXTENSION = ".jar";
     @NonNls
     private static final String ZIP_EXTENSION = ".zip";
     @NonNls
     private static final String TEMP_PREFIX = "temp";
-
+    @NonNls
     private static final Pattern PATTERN = Pattern.compile("\\$\\{([\\w\\.\\-\\_]+)\\}");
+    @NonNls
+    private static final String LIB_PATH_WITH_EXT_FORMAT = "/{0}/lib/{1}{2}";
+    @NonNls
+    private static final String LIB_PATH_DIR_FORMAT = "/{0}/lib/{1}";
+    @NonNls
+    private static final String SRC_DIR_FORMAT = "{0}/src/{1}";
+    @NonNls
+    private static final String LIB_STRUCTURE_FORMAT = "{0}/lib";
+    @NonNls
+    private static final String SRC_STRUCTURE_FORMAT = "{0}/src";
+    @NonNls
+    private static final String PLUGIN_XML_PATH = "/META-INF/plugin.xml";
+    @NonNls
+    private static final String PLUGIN_ID = "plugin.id";
+    @NonNls
+    private static final String PLUGIN_VERSION = "plugin.version";
+    protected final Project project;
+    private final FileTypeManager myFileTypeManager = FileTypeManager.getInstance();
 
-    private final Project project;
-
-    public PluginPackerManagerImpl(Project project) {
+    public PluginPacker(Project project) {
         this.project = project;
-    }
-
-    @NotNull
-    public Project getProject() {
-        return project;
     }
 
     public boolean packModule(@NotNull final Module module,
@@ -72,8 +85,8 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
                               @NotNull String outputDirectory) {
         Map<String, String> variables = new HashMap<String, String>();
         final String pluginId = StringUtil.decapitalize(PluginXmlUtil.getPluginId(module));
-        variables.put("plugin.id", pluginId);
-        variables.put("plugin.version", PluginXmlUtil.getPluginVersion(module));
+        variables.put(PLUGIN_ID, pluginId);
+        variables.put(PLUGIN_VERSION, PluginXmlUtil.getPluginVersion(module));
 
         String packageName = replaceVariables(packagePattern, variables);
         final String sourcesName = sourcesPattern != null ? replaceVariables(sourcesPattern, variables) : null;
@@ -92,7 +105,7 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             }
 
             // Errors container
-            final Set<String> errorSet = new HashSet<String>();
+            @NonNls final Set<String> errorSet = new HashSet<String>();
 
             // Dependencies
             final Set<Module> modules = new HashSet<Module>();
@@ -107,28 +120,28 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
                 public void run() {
                     final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
                     try {
-                        // Build binary package 
+                        // Build binary package
                         if (progressIndicator != null) {
-                            progressIndicator.setText("Preparing binary package...");
+                            progressIndicator.setText(PluginPackerBundle.message("preparing.binary.package"));
                             progressIndicator.setIndeterminate(true);
                         }
                         File jarFile = createTempPluginJar(module, modules);
                         File srcFile = null;
                         if (srcZipBuffer == null && sourcesName != null) {
                             if (progressIndicator != null) {
-                                progressIndicator.setText("Preparing sources package...");
+                                progressIndicator.setText(PluginPackerBundle.message("preparing.sources.package"));
                                 progressIndicator.setIndeterminate(true);
                             }
                             srcFile = createTempSourcesZip(modules);
                         }
                         if (progressIndicator != null) {
-                            progressIndicator.setText("Building binary package " + outputBinFile.getName() + "...");
+                            progressIndicator.setText(PluginPackerBundle.message("building.binary.package.0", outputBinFile.getName()));
                             progressIndicator.setIndeterminate(true);
                         }
                         processLibraries(pluginId, jarFile, srcFile, sourcesName, binZipBuffer, libs, progressIndicator);
                         if (srcZipBuffer != null) {
                             if (progressIndicator != null) {
-                                progressIndicator.setText("Building sources package " + outputSrcFile.getName() + "...");
+                                progressIndicator.setText(PluginPackerBundle.message("building.sources.package.0", outputSrcFile.getName()));
                                 progressIndicator.setIndeterminate(true);
                             }
                             zipSources(srcZipBuffer, modules);
@@ -138,27 +151,27 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
                         ApplicationManager.getApplication().invokeLater(new Runnable() {
                             public void run() {
                                 errorSet.add("error");
-                                Messages.showErrorDialog(e1.getMessage(), "Plugin packing error");
+                                Messages.showErrorDialog(e1.getMessage(), PluginPackerBundle.message("plugin.packing.error"));
                             }
                         }, ModalityState.NON_MODAL);
                     }
                 }
-            }, "Preparing plugin pack...", true, module.getProject());
+            }, PluginPackerBundle.message("preparing.plugin.pack"), true, module.getProject());
 
             if (isOk && errorSet.isEmpty()) {
                 FileUtil.copy(binZipBuffer, outputBinFile);
                 if (srcZipBuffer != null) {
                     FileUtil.copy(srcZipBuffer, outputSrcFile);
-                    WindowManager.getInstance().getStatusBar(project).setInfo(MessageFormat.format("Files {0} and {1} saved successful", outputBinFile.getName(), outputSrcFile.getName()));
+                    WindowManager.getInstance().getStatusBar(project).setInfo(PluginPackerBundle.message("file.0.and.1.saved.successful", outputBinFile.getName(), outputSrcFile.getName()));
                 } else {
-                    WindowManager.getInstance().getStatusBar(project).setInfo(MessageFormat.format("File {0} saved successful", outputBinFile.getName()));
+                    WindowManager.getInstance().getStatusBar(project).setInfo(PluginPackerBundle.message("file.0.saved.successful", outputBinFile.getName()));
                 }
                 return true;
             }
         } catch (final IOException e) {
             ApplicationManager.getApplication().invokeLater(new Runnable() {
                 public void run() {
-                    Messages.showErrorDialog(e.getMessage(), "Plugin packing error");
+                    Messages.showErrorDialog(e.getMessage(), PluginPackerBundle.message("plugin.packing.error"));
                 }
             }, ModalityState.NON_MODAL);
         }
@@ -173,7 +186,7 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
 
     private boolean confirmFileOverwriting(@NotNull File file) {
         if (file.exists()) {
-            if (Messages.showYesNoDialog(project, "File already exist.\nDelete old file " + file.getPath() + "?", "Plugin packing",
+            if (Messages.showYesNoDialog(project, PluginPackerBundle.message("file.already.exist.ndelete.old.file.0", file.getPath()), PluginPackerBundle.message("packing.plugin"),
                     Messages.getInformationIcon()) == DialogWrapper.OK_EXIT_CODE) {
                 FileUtil.delete(file);
             } else {
@@ -190,32 +203,12 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             if (StringUtil.isNotEmpty(value)) {
                 int start = matcher.start();
                 int end = matcher.end();
-                pattern = pattern.substring(0, start) + value + pattern.substring(end);
+                pattern = pattern.substring(0, start).concat(value).concat(pattern.substring(end));
                 matcher.reset(pattern);
             }
         }
         return pattern;
     }
-
-    public void projectOpened() {
-    }
-
-    public void projectClosed() {
-    }
-
-    @NonNls
-    @NotNull
-    public String getComponentName() {
-        return "PluginPackerManager";
-    }
-
-    public void initComponent() {
-    }
-
-    public void disposeComponent() {
-    }
-
-    private final FileTypeManager myFileTypeManager = FileTypeManager.getInstance();
 
     private void processLibraries(
             String name,
@@ -231,8 +224,8 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             try {
                 zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
                 addStructure(name, zos);
-                addStructure(name + "/" + "lib", zos);
-                ZipUtil.addFileToZip(zos, jarFile, "/" + name + "/lib/" + name + JAR_EXTENSION, new HashSet<String>(), new FileFilter() {
+                addStructure(MessageFormat.format(LIB_STRUCTURE_FORMAT, name), zos);
+                ZipUtil.addFileToZip(zos, jarFile, MessageFormat.format(LIB_PATH_WITH_EXT_FORMAT, name, name, JAR_EXTENSION), new HashSet<String>(), new FileFilter() {
                     public boolean accept(File pathname) {
                         if (progressIndicator != null) {
                             progressIndicator.setText2("");
@@ -241,11 +234,11 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
                     }
                 });
                 if (srcZipFile != null) {
-                    addStructure(name + "/" + "src", zos);
-                    ZipUtil.addFileToZip(zos, srcZipFile, name + "/src/" + sourcesName, new HashSet<String>(), new FileFilter() {
+                    addStructure(MessageFormat.format(SRC_STRUCTURE_FORMAT, name), zos);
+                    ZipUtil.addFileToZip(zos, srcZipFile, MessageFormat.format(SRC_DIR_FORMAT, name, sourcesName), new HashSet<String>(), new FileFilter() {
                         public boolean accept(File pathname) {
                             if (progressIndicator != null) {
-                                progressIndicator.setText2("Adding sources...");
+                                progressIndicator.setText2(PluginPackerBundle.message("adding.sources"));
                             }
                             return !myFileTypeManager.isFileIgnored(FileUtil.toSystemIndependentName(pathname.getPath()));
                         }
@@ -295,7 +288,7 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             ZipUtil.addFileOrDirRecursively(jar, libraryJar, VfsUtil.virtualToIoFile(virtualFile), "", new FileFilter() {
                 public boolean accept(File pathname) {
                     if (progressIndicator != null) {
-                        progressIndicator.setText2("Adding " + pathname + "...");
+                        progressIndicator.setText2(PluginPackerBundle.message("adding.0", pathname));
                     }
                     return !myFileTypeManager.isFileIgnored(FileUtil.toSystemIndependentName(pathname.getPath()));
                 }
@@ -307,7 +300,7 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             }
         }
         ZipUtil.addFileOrDirRecursively(zos, zipFile, libraryJar,
-                "/" + name + "/lib/" + getLibraryJarName(library, names, virtualFile) + JAR_EXTENSION,
+                MessageFormat.format(LIB_PATH_WITH_EXT_FORMAT, name, getLibraryJarName(library, names, virtualFile), JAR_EXTENSION),
                 new FileFilter() {
                     public boolean accept(File pathname) {
                         if (progressIndicator != null) {
@@ -324,15 +317,8 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             return name;
         }
         String libraryName = virtualFile.getName();
-        if (names.contains(libraryName)) {
-            int i = 1;
-            while (true) {
-                if (!names.contains(libraryName + i)) {
-                    libraryName += i;
-                    break;
-                }
-                i++;
-            }
+        for (int i = 1; names.contains(libraryName); i++) {
+            libraryName = libraryName.concat(String.valueOf(i));
         }
         names.add(libraryName);
         return libraryName;
@@ -353,7 +339,7 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
                 return true;
             }
         };
-        ZipUtil.addFileOrDirRecursively(zos, zipFile, ioFile, "/" + name + "/lib/" + ioFile.getName(), filter, null);
+        ZipUtil.addFileOrDirRecursively(zos, zipFile, ioFile, MessageFormat.format(LIB_PATH_DIR_FORMAT, name, ioFile.getName()), filter, null);
     }
 
     private void addStructure(@NonNls final String relativePath, final ZipOutputStream zos) throws IOException {
@@ -365,79 +351,60 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
         zos.closeEntry();
     }
 
+    /**
+     * Jar plugin module
+     *
+     * @param module  Module
+     * @param modules Depended modules
+     * @return File of jar (in temp directory)
+     * @throws java.io.IOException is IO oprations failed
+     */
+    @NotNull
     private File createTempPluginJar(Module module, final Set<Module> modules) throws IOException {
-        File jarFile = createTempFile(JAR_EXTENSION);
-        jarPluginModule(jarFile, module, modules);
-        return jarFile;
-    }
-
-    private void jarPluginModule(File jarFile, Module module, Set<Module> dependencies) throws IOException {
-        final PluginModuleBuildProperties pluginModuleBuildProperties =
-                ((PluginModuleBuildProperties) ModuleBuildProperties.getInstance(module));
-        final Manifest manifest = createOrFindManifest(pluginModuleBuildProperties);
-        ZipOutputStream jarPlugin = null;
-        try {
-            jarPlugin = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)), manifest);
-            final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-            final HashSet<String> writtenItemRelativePaths = new HashSet<String>();
-            for (Module dependence : dependencies) {
-                final VirtualFile compilerOutputPath = ModuleRootManager.getInstance(dependence).getCompilerOutputPath();
-                if (compilerOutputPath == null) {
-                    continue; //pre-condition: output dirs for all modules are up-to-date
-                }
-                ZipUtil.addDirToZipRecursively(jarPlugin, jarFile, new File(compilerOutputPath.getPath()), "", new FileFilter() {
-                    public boolean accept(File pathname) {
-                        if (progressIndicator != null) {
-                            progressIndicator.setText2("");
-                        }
-                        return !myFileTypeManager.isFileIgnored(FileUtil.toSystemIndependentName(pathname.getName()));
-                    }
-                }, writtenItemRelativePaths);
-            }
-            final String pluginXmlPath = pluginModuleBuildProperties.getPluginXmlPath();
-            @NonNls final String metainf = "/META-INF/plugin.xml";
-            ZipUtil.addFileToZip(jarPlugin,
-                    new File(pluginXmlPath),
-                    metainf,
-                    writtenItemRelativePaths,
-                    new FileFilter() {
-                        public boolean accept(File pathname) {
-                            if (progressIndicator != null) {
-                                progressIndicator.setText2("");
+        final PluginBuildConfiguration buildConfiguration = PluginBuildConfiguration.getInstance(module);
+        if (buildConfiguration != null) {
+            final File jarFile = createTempFile(JAR_EXTENSION);
+            final Manifest manifest = PrepareToDeployAction.createOrFindManifest(buildConfiguration);
+            ZipOutputStream jarPlugin = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)), manifest);
+            try {
+                final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
+                final HashSet<String> writtenItemRelativePaths = new HashSet<String>();
+                for (Module dependence : modules) {
+                    final VirtualFile compilerOutputPath = ModuleRootManager.getInstance(dependence).getCompilerOutputPath();
+                    if (compilerOutputPath != null) {
+                        ZipUtil.addDirToZipRecursively(jarPlugin, jarFile, new File(compilerOutputPath.getPath()), "", new FileFilter() {
+                            public boolean accept(File pathname) {
+                                if (progressIndicator != null) {
+                                    progressIndicator.setText2("");
+                                }
+                                return !myFileTypeManager.isFileIgnored(FileUtil.toSystemIndependentName(pathname.getName()));
                             }
-                            return true;
-                        }
-                    });
+                        }, writtenItemRelativePaths);
+                    }
+                }
+                final String pluginXmlPath = buildConfiguration.getPluginXmlPath();
+                ZipUtil.addFileToZip(jarPlugin,
+                        new File(pluginXmlPath),
+                        PLUGIN_XML_PATH,
+                        writtenItemRelativePaths,
+                        new FileFilter() {
+                            public boolean accept(File pathname) {
+                                if (progressIndicator != null) {
+                                    progressIndicator.setText2("");
+                                }
+                                return true;
+                            }
+                        });
 
-        }
-        finally {
-            if (jarPlugin != null) {
+            } finally {
                 jarPlugin.close();
             }
+            return jarFile;
         }
+        throw new IllegalArgumentException(MessageFormat.format(PluginPackerBundle.message("can.t.find.build.configuration.for.module.0"), module.getName()));
     }
 
-    private Manifest createOrFindManifest(final PluginModuleBuildProperties pluginModuleBuildProperties) throws IOException {
-        final Manifest manifest = new Manifest();
-        final VirtualFile vManifest = pluginModuleBuildProperties.getManifest();
-        if (pluginModuleBuildProperties.isUseUserManifest() && vManifest != null) {
-            InputStream in = null;
-            try {
-                in = new BufferedInputStream(vManifest.getInputStream());
-                manifest.read(in);
-            }
-            finally {
-                if (in != null) {
-                    in.close();
-                }
-            }
-        } else {
-            Attributes mainAttributes = manifest.getMainAttributes();
-            ManifestBuilder.setGlobalAttributes(mainAttributes);
-        }
-        return manifest;
-    }
-
+    @NotNull
     private File createTempSourcesZip(final Set<Module> modules) throws IOException {
         File zipFile = createTempFile(ZIP_EXTENSION);
         zipSources(zipFile, modules);
@@ -477,5 +444,4 @@ final class PluginPackerManagerImpl extends PluginPackerManager implements Proje
             }
         }
     }
-
 }
