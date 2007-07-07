@@ -220,16 +220,20 @@ final class PluginPackerForm {
         }
         final TextFieldWithStoredHistory outputPathHistory = createHistoryTextField(PLUGIN_PACKER_OUTPUT_PATH_KEY, defaultOutputPath);
         outputPathTextFieldWithBrowseButton = new ComponentWithBrowseButton<TextFieldWithStoredHistory>(outputPathHistory, null);
-        FixedSizeButton button = outputPathTextFieldWithBrowseButton.getButton();
-        outputPathTextFieldWithBrowseButton.remove(button);
+        fixButton(outputPathHistory, outputPathTextFieldWithBrowseButton);
+    }
+
+    private void fixButton(final TextFieldWithStoredHistory historyField, ComponentWithBrowseButton<TextFieldWithStoredHistory> control) {
+        FixedSizeButton button = control.getButton();
+        control.remove(button);
         BorderLayout borderLayout = new BorderLayout();
         JPanel buttonPanel = new JPanel(borderLayout);
         buttonPanel.setBorder(IdeBorderFactory.createEmptyBorder(4, 0, 4, 0));
         buttonPanel.add(button, BorderLayout.CENTER);
-        outputPathTextFieldWithBrowseButton.add(buttonPanel, BorderLayout.EAST);
+        control.add(buttonPanel, BorderLayout.EAST);
         button.setAttachedComponent(new JComponent() {
             public Dimension getPreferredSize() {
-                Dimension size = outputPathHistory.getTextEditor().getPreferredSize();
+                Dimension size = historyField.getTextEditor().getPreferredSize();
                 return new Dimension(-1, size.height + 6);
             }
 
