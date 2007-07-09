@@ -195,6 +195,9 @@ public final class FileHistoryManager implements ProjectComponent, JDOMExternali
         }
     }
 
+    public void afterActionPerformed(AnAction anAction, DataContext dataContext) {
+    }
+
     public void beforeEditorTyping(char c, DataContext dataContext) {
     }
 }

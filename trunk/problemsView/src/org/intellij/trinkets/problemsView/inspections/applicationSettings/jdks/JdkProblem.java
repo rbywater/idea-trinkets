@@ -4,7 +4,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdk;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectRootConfigurable;
 import org.intellij.trinkets.problemsView.problems.AbstractProblem;
 import org.intellij.trinkets.problemsView.problems.ConfigurableFix;
 import org.intellij.trinkets.problemsView.problems.ProblemFix;
@@ -34,7 +33,8 @@ public class JdkProblem extends AbstractProblem {
                 new ConfigurableFix("Show Project Roots setting") {
                     @NotNull
                     protected Configurable getConfigurable(@NotNull Application application, @NotNull Project project) {
-                        return project.getComponent(ProjectRootConfigurable.class);
+//                        return project.getComponent(ProjectRootConfigurable.class);
+                        return null;
                     }
                 }
         };

@@ -24,16 +24,16 @@ public class JikesSettingsInspection implements ProblemInspection {
     @NotNull
     public Problem[] inspect() {
         CompilerConfiguration compilerConfiguration = CompilerConfiguration.getInstance(project);
-        if (compilerConfiguration.getDefaultCompiler() instanceof JikesCompiler) {
-            try {
-                if (FindFileUtil.isValidUrl(JikesSettings.getInstance(project).JIKES_PATH)) {
-                    return Problem.EMPTY_PROBLEM_ARRAY;
-                }
-            } catch (Throwable t) {
-                // Ignore error here
-            }
-            return new Problem[]{new JikesSettingsProblem()};
-        }
+//        if (compilerConfiguration.getDefaultCompiler() instanceof JikesCompiler) {
+//            try {
+//                if (FindFileUtil.isValidUrl(JikesSettings.getInstance(project).JIKES_PATH)) {
+//                    return Problem.EMPTY_PROBLEM_ARRAY;
+//                }
+//            } catch (Throwable t) {
+//                // Ignore error here
+//            }
+//            return new Problem[]{new JikesSettingsProblem()};
+//        }
         return Problem.EMPTY_PROBLEM_ARRAY;
 
     }

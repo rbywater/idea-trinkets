@@ -35,5 +35,7 @@ public interface TreeElement<T> {
 
     void removeChild(TreeElement child);
 
+    void clearChildren();
+
     TreeElement findChildByValue(@NotNull Object value);
 }

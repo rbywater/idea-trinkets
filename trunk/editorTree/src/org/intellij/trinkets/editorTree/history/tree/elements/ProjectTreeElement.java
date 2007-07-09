@@ -1,6 +1,7 @@
 package org.intellij.trinkets.editorTree.history.tree.elements;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.Icons;
@@ -10,10 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Root tree element for history
@@ -22,6 +20,7 @@ import java.util.List;
  */
 public final class ProjectTreeElement extends AbstractTreeElement<Project> {
     private static final TreePath[] EMPTY_TREE_PATH_ARRAY = new TreePath[]{};
+    private boolean directoryGroupingEnabled;
 
     public ProjectTreeElement(Project value) {
         super(value, false);
@@ -100,5 +99,36 @@ public final class ProjectTreeElement extends AbstractTreeElement<Project> {
         }
         TreePath[] treePaths = addHistory(Collections.singleton(history));
         return treePaths.length > 0 ? treePaths[0] : null;
+    }
+
+    private Set<FileHistory> collectHistories(TreeElement element, Set<FileHistory> histories) {
+        if (element instanceof FileHistoryTreeElement) {
+            FileHistoryTreeElement fileHistoryTreeElement = (FileHistoryTreeElement) element;
+            histories.add(fileHistoryTreeElement.getValue());
+        }
+        int count = element.getChildCount();
+        for (int i = 0; i < count; i++) {
+            collectHistories(element.getChild(i), histories);
+        }
+        return histories;
+    }
+
+    public TreeElement createTreeElement(FileHistory history) {
+        if (directoryGroupingEnabled) {
+            VirtualFile virtualFile = FileHistoryUtil.resolve(history);
+
+        } else {
+
+        }
+        return null;
+    }
+
+    public void setDirectoryGroupingEnabled(boolean enabled) {
+        Set<FileHistory> histories = collectHistories(this, new HashSet<FileHistory>());
+        // Remove all
+        clearChildren();
+        directoryGroupingEnabled = enabled;
+        // Add again
+        addHistory(histories);
     }
 }

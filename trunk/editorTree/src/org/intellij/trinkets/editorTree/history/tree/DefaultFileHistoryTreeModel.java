@@ -27,27 +27,38 @@ public final class DefaultFileHistoryTreeModel implements FileHistoryTreeModel {
     }
 
     private void fireAdded(TreePath[] added) {
+        HashSet<TreeModelListener> listenersList = new HashSet<TreeModelListener>(listeners);
         for (TreePath treePath : added) {
             TreeModelEvent event = new TreeModelEvent(this, treePath);
-            for (TreeModelListener listener : new HashSet<TreeModelListener>(listeners)) {
+            for (TreeModelListener listener : listenersList) {
                 listener.treeNodesInserted(event);
             }
         }
     }
 
     private void fireRemoved(TreePath[] removed) {
+        HashSet<TreeModelListener> listenersList = new HashSet<TreeModelListener>(listeners);
         for (TreePath treePath : removed) {
             TreeModelEvent event = new TreeModelEvent(this, treePath);
-            for (TreeModelListener listener : new HashSet<TreeModelListener>(listeners)) {
+            for (TreeModelListener listener : listenersList) {
                 listener.treeNodesRemoved(event);
             }
         }
     }
 
     private void fireChanged(TreePath changed) {
+        HashSet<TreeModelListener> listenersList = new HashSet<TreeModelListener>(listeners);
         TreeModelEvent event = new TreeModelEvent(this, changed);
-        for (TreeModelListener listener : new HashSet<TreeModelListener>(listeners)) {
+        for (TreeModelListener listener : listenersList) {
             listener.treeNodesChanged(event);
+        }
+    }
+
+    private void fireStructureChanged() {
+        HashSet<TreeModelListener> listenersList = new HashSet<TreeModelListener>(listeners);
+        TreeModelEvent event = new TreeModelEvent(this, new TreePath(root));
+        for (TreeModelListener listener : listenersList) {
+            listener.treeStructureChanged(event);
         }
     }
 
@@ -68,6 +79,11 @@ public final class DefaultFileHistoryTreeModel implements FileHistoryTreeModel {
         if (treePath != null) {
             fireChanged(treePath);
         }
+    }
+
+    public void groupByDirectory(boolean enabled) {
+        root.setDirectoryGroupingEnabled(enabled);
+        fireStructureChanged();
     }
 
     public Object getRoot() {
