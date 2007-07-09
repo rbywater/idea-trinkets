@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import org.intellij.trinkets.editorTree.view.EditorTreeView;
 import org.intellij.trinkets.editorTree.view.EditorTreeViewManager;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 final class EditorTreeViewManagerImpl implements EditorTreeViewManager, ProjectComponent {
     private final EditorTreeView view;
@@ -19,6 +20,7 @@ final class EditorTreeViewManagerImpl implements EditorTreeViewManager, ProjectC
     public void projectClosed() {
     }
 
+    @NotNull
     @NonNls
     public String getComponentName() {
         return "EditorTreeViewManager";

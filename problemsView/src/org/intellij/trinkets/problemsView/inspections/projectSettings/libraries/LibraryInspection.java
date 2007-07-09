@@ -10,7 +10,6 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectRootConfigurable;
 import org.intellij.trinkets.problemsView.inspections.ProblemInspection;
 import org.intellij.trinkets.problemsView.problems.Problem;
 import org.intellij.trinkets.problemsView.util.FindFileUtil;
@@ -85,8 +84,8 @@ public class LibraryInspection implements ProblemInspection {
                 LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry) entry;
                 Library library = libraryOrderEntry.getLibrary();
                 if (library != null) {
-                    String libName = ProjectRootConfigurable.trancateModuleLibraryName(libraryOrderEntry);
-                    checkLibrary(MODULE_LIBRARY_ROOT, libName, library, problems);
+//                    String libName = ProjectRootConfigurable.trancateModuleLibraryName(libraryOrderEntry);
+//                    checkLibrary(MODULE_LIBRARY_ROOT, libName, library, problems);
                 }
             }
         }

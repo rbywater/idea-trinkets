@@ -17,4 +17,6 @@ public interface FileHistoryTreeModel extends TreeModel {
     void remove(FileHistory history);
 
     void changed(FileHistory history);
+
+    void groupByDirectory(boolean enabled);
 }

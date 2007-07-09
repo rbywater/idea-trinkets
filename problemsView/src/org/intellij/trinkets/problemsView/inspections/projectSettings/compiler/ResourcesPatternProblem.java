@@ -51,11 +51,11 @@ public class ResourcesPatternProblem extends AbstractProblem {
         public void applyFix(@NotNull Project project) {
             CompilerConfiguration compilerConfiguration = project.getComponent(CompilerConfiguration.class);
             for (String pattern : missedPatterns) {
-                try {
-                    compilerConfiguration.addResourceFilePattern(pattern);
-                } catch (MalformedPatternException e) {
-                    // Ignore
-                }
+//                try {
+//                    compilerConfiguration.addResourceFilePattern(pattern);
+//                } catch (MalformedPatternException e) {
+//                    // Ignore
+//                }
             }
         }
     }

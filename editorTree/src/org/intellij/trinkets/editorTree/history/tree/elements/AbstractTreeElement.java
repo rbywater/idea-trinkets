@@ -54,9 +54,15 @@ public abstract class AbstractTreeElement<T> implements TreeElement<T> {
         }
     }
 
-    public void removeChild(TreeElement child) {
+    public final void removeChild(TreeElement child) {
         if (children != null) {
             children.remove(child);
+        }
+    }
+
+    public final void clearChildren() {
+        if (children != null) {
+            children.clear();
         }
     }
 

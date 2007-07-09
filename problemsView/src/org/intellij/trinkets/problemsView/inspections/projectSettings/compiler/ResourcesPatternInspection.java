@@ -39,19 +39,19 @@ public class ResourcesPatternInspection implements ProblemInspection {
         ResourcesPatternProblem problem = null;
         List<String> missed = new ArrayList<String>(0);
         CompilerConfiguration compilerConfiguration = CompilerConfiguration.getInstance(project);
-        List<String> patterns = Arrays.asList(compilerConfiguration.getWildcardPatterns());
-        // Scan project for used file types
-        FileTypeManager typeManager = FileTypeManager.getInstance();
-        String[] foundPatterns = scanFileTypes(typeManager);
-        for (String string : foundPatterns) {
-            String pattern = '?' + string;
-            if (!patterns.contains(pattern)) {
-                missed.add(pattern);
-            }
-        }
-        if (missed.size() > 0) {
-            problem = new ResourcesPatternProblem(missed.toArray(ArrayUtil.EMPTY_STRING_ARRAY));
-        }
+//        List<String> patterns = Arrays.asList(compilerConfiguration.getWildcardPatterns());
+//        // Scan project for used file types
+//        FileTypeManager typeManager = FileTypeManager.getInstance();
+//        String[] foundPatterns = scanFileTypes(typeManager);
+//        for (String string : foundPatterns) {
+//            String pattern = '?' + string;
+//            if (!patterns.contains(pattern)) {
+//                missed.add(pattern);
+//            }
+//        }
+//        if (missed.size() > 0) {
+//            problem = new ResourcesPatternProblem(missed.toArray(ArrayUtil.EMPTY_STRING_ARRAY));
+//        }
         return problem;
     }
 

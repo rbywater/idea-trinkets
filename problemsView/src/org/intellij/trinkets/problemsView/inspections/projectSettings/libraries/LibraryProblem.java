@@ -4,7 +4,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectRootConfigurable;
 import org.intellij.trinkets.problemsView.problems.AbstractProblem;
 import org.intellij.trinkets.problemsView.problems.ConfigurableFix;
 import org.intellij.trinkets.problemsView.problems.ProblemFix;
@@ -69,7 +68,8 @@ public class LibraryProblem extends AbstractProblem {
 
         @NotNull
         protected Configurable getConfigurable(@NotNull Application application, @NotNull Project project) {
-            return project.getComponent(ProjectRootConfigurable.class);
+            // return project.getComponent(ProjectRootConfigurable.class);
+            return null;
         }
     }
 }
