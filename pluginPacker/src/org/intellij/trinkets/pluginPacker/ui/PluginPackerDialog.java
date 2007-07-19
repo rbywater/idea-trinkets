@@ -75,4 +75,8 @@ public final class PluginPackerDialog extends DialogWrapper {
     public final boolean isInboxSources() {
         return form.isInboxSources();
     }
+
+    public boolean isSilentOverwrite() {
+        return form.isSilentOverwrite();
+    }
 }

@@ -1,8 +1,10 @@
 package org.intellij.trinkets.pluginPacker.actions;
 
+import com.intellij.compiler.impl.CompilerUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -39,19 +41,40 @@ public final class PackAction extends AnAction {
                 dialog.setTitle(PluginPackerBundle.message("prepare.plugin.for.deploying"));
                 dialog.show();
                 if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-                    final Module module = dialog.getModule();
-                    CompilerManager.getInstance(project).make(module, new CompileStatusNotification() {
-                        public void finished(boolean aborted, int errors, int warnings, final CompileContext compileContext) {
-                            PluginPacker packer = new PluginPacker(project);
-                            if (!aborted && errors == 0) {
-                                String packagePattern = dialog.getPackagePattern();
-                                String sourcesPattern = dialog.isBuildSources() ? dialog.getSourcesPattern() : null;
-                                boolean isInboxSources = dialog.isInboxSources();
-                                String directory = dialog.getOutputPath();
-                                packer.packModule(module, packagePattern, sourcesPattern, isInboxSources, directory);
+                    final List<Module> modules = new ArrayList<Module>();
+                    selectedModule = dialog.getModule();
+                    if (selectedModule != null) {
+                        modules.add(selectedModule);
+                    } else {
+                        modules.addAll(pluginModules);
+                    }
+                    CompilerManager compilerManager = CompilerManager.getInstance(project);
+                    compilerManager.make(
+                            project,
+                            modules.toArray(new Module[modules.size()]),
+                            new CompileStatusNotification() {
+                                public void finished(boolean aborted, int errors, int warnings, final CompileContext compileContext) {
+                                    PluginPacker packer = new PluginPacker(project);
+                                    if (!aborted && errors == 0) {
+                                        final String directory = dialog.getOutputPath();
+                                        String packagePattern = dialog.getPackagePattern();
+                                        String sourcesPattern = dialog.isBuildSources() ? dialog.getSourcesPattern() : null;
+                                        boolean isInboxSources = dialog.isInboxSources();
+                                        boolean isSilentOverwrite = dialog.isSilentOverwrite();
+                                        for (Module module : modules) {
+                                            packer.packModule(module, packagePattern, sourcesPattern, isInboxSources, directory, isSilentOverwrite);
+                                        }
+                                        if (modules.size() > 0) {
+                                            ApplicationManager.getApplication().runReadAction(new Runnable() {
+                                                public void run() {
+                                                    CompilerUtil.refreshPaths(new String[]{directory});
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    });
+                    );
                 }
             }
         }

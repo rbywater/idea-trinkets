@@ -46,7 +46,7 @@ import java.util.zip.ZipOutputStream;
  *
  * @author Alexey Efimov
  */
-public class PluginPacker {
+public final class PluginPacker {
     @NonNls
     private static final String JAR_EXTENSION = ".jar";
     @NonNls
@@ -71,6 +71,9 @@ public class PluginPacker {
     private static final String PLUGIN_ID = "plugin.id";
     @NonNls
     private static final String PLUGIN_VERSION = "plugin.version";
+    @NonNls
+    private static final String MODULE_NAME = "module.name";
+    
     protected final Project project;
     private final FileTypeManager myFileTypeManager = FileTypeManager.getInstance();
 
@@ -82,13 +85,16 @@ public class PluginPacker {
                               @NotNull String packagePattern,
                               String sourcesPattern,
                               final boolean inboxSources,
-                              @NotNull String outputDirectory) {
+                              @NotNull String outputDirectory, boolean silentOverwrite) {
         Map<String, String> variables = new HashMap<String, String>();
-        final String pluginId = StringUtil.decapitalize(PluginXmlUtil.getPluginId(module));
+        String pluginId = StringUtil.decapitalize(PluginXmlUtil.getPluginId(module));
+        String moduleName = StringUtil.decapitalize(module.getName());
+        variables.put(MODULE_NAME, moduleName);
         variables.put(PLUGIN_ID, pluginId);
         variables.put(PLUGIN_VERSION, PluginXmlUtil.getPluginVersion(module));
 
-        String packageName = replaceVariables(packagePattern, variables);
+        final String pluginName = packagePattern.indexOf(MODULE_NAME) != -1 ? moduleName : pluginId;
+        final String packageName = replaceVariables(packagePattern, variables);
         final String sourcesName = sourcesPattern != null ? replaceVariables(sourcesPattern, variables) : null;
 
         try {
@@ -96,11 +102,11 @@ public class PluginPacker {
             final File srcZipBuffer = sourcesName != null && !inboxSources ? createTempFile(ZIP_EXTENSION) : null;
 
             final File outputBinFile = new File(outputDirectory, packageName);
-            if (!confirmFileOverwriting(outputBinFile)) {
+            if (!silentOverwrite && !confirmFileOverwriting(outputBinFile)) {
                 return false;
             }
             final File outputSrcFile = srcZipBuffer != null ? new File(outputDirectory, sourcesName) : null;
-            if (outputSrcFile != null && !confirmFileOverwriting(outputSrcFile)) {
+            if (outputSrcFile != null && !silentOverwrite && !confirmFileOverwriting(outputSrcFile)) {
                 return false;
             }
 
@@ -138,7 +144,7 @@ public class PluginPacker {
                             progressIndicator.setText(PluginPackerBundle.message("building.binary.package.0", outputBinFile.getName()));
                             progressIndicator.setIndeterminate(true);
                         }
-                        processLibraries(pluginId, jarFile, srcFile, sourcesName, binZipBuffer, libs, progressIndicator);
+                        processLibraries(pluginName, jarFile, srcFile, sourcesName, binZipBuffer, libs, progressIndicator);
                         if (srcZipBuffer != null) {
                             if (progressIndicator != null) {
                                 progressIndicator.setText(PluginPackerBundle.message("building.sources.package.0", outputSrcFile.getName()));
