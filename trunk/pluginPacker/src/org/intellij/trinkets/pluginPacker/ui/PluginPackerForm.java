@@ -20,6 +20,7 @@ import com.intellij.util.ui.update.ComponentDisposable;
 import org.intellij.trinkets.pluginPacker.util.PluginPackerBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.idea.devkit.module.PluginModuleType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,6 +29,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Plugin packer form.
@@ -36,15 +38,17 @@ import java.util.List;
  */
 final class PluginPackerForm {
     @NonNls
-    private static final String DEFAULT_PACKAGE_PATTERN = "${plugin.id}_${plugin.version}.zip";
+    private static final String[] DEFAULT_PACKAGE_PATTERNS = {"${module.name}_${plugin.version}.zip", "${plugin.id}_${plugin.version}.zip"};
     @NonNls
-    private static final String DEFAULT_SOURCES_INBOX_PATTERN = "src_${plugin.id}.zip";
+    private static final String[] DEFAULT_SOURCES_INBOX_PATTERNS = {"src_${module.name}.zip", "src_${plugin.id}.zip"};
     @NonNls
-    private static final String DEFAULT_SOURCES_OUTBOX_PATTERN = "${plugin.id}_${plugin.version}_src.zip";
+    private static final String[] DEFAULT_SOURCES_OUTBOX_PATTERNS = {"${module.name}_${plugin.version}_src.zip", "${plugin.id}_${plugin.version}_src.zip"};
     @NonNls
     private static final String PROPERTY_BUILD_SOURCES = "PluginPacker.BuildSources";
     @NonNls
     private static final String PROPERTY_INBOX_SOURCES = "PluginPacker.InboxSources";
+    @NonNls
+    private static final String PROPERTY_SILENT_OVERWRITE = "PluginPacker.SilentOverwrite";
     @NonNls
     private static final String PACKAGE_PATTERN_KEY = "PluginPacker.PackagePattern";
     @NonNls
@@ -66,6 +70,7 @@ final class PluginPackerForm {
     private TextFieldWithStoredHistory inboxSourcesPatternTextFieldWithStoredHistory;
     private JRadioButton outboxSourcesButton;
     private TextFieldWithStoredHistory outboxSourcesPatternTextFieldWithStoredHistory;
+    private JCheckBox silentOverwriteCheckBox;
 
     public PluginPackerForm(Project project, Module[] modules, Module defaultModule) {
         this.defaultModule = defaultModule;
@@ -91,11 +96,14 @@ final class PluginPackerForm {
             }
         });
         moduleComboBox.setRenderer(new ModuleListRenderer());
-        moduleComboBox.setModel(new DefaultComboBoxModel(modules));
+        List<Module> nullableModuleList = new ArrayList<Module>(modules.length + 1);
+        nullableModuleList.add(null);
+        nullableModuleList.addAll(Arrays.asList(modules));
+        moduleComboBox.setModel(new DefaultComboBoxModel(nullableModuleList.toArray(new Module[nullableModuleList.size()])));
         if (defaultModule != null) {
             moduleComboBox.setSelectedItem(defaultModule);
         } else {
-            moduleComboBox.setSelectedIndex(-1);
+            moduleComboBox.setSelectedIndex(0);
         }
         PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
         boolean inboxSources = propertiesComponent.isTrueValue(PROPERTY_INBOX_SOURCES) || !propertiesComponent.isValueSet(PROPERTY_INBOX_SOURCES);
@@ -117,6 +125,7 @@ final class PluginPackerForm {
             JTextField field = outputPathTextFieldWithBrowseButton.getChildComponent().getTextEditor();
             FileChooserFactory.getInstance().installFileCompletion(field, outputPathDescriptor, true, new ComponentDisposable(field, project));
         }
+        silentOverwriteCheckBox.setSelected(propertiesComponent.isTrueValue(PROPERTY_SILENT_OVERWRITE));
     }
 
     public final Module getModule() {
@@ -144,13 +153,11 @@ final class PluginPackerForm {
         return inboxSourcesButton.isSelected();
     }
 
+    public boolean isSilentOverwrite() {
+        return silentOverwriteCheckBox.isSelected();
+    }
+
     public final boolean validate() {
-        Module module = (Module) moduleComboBox.getSelectedItem();
-        if (module == null) {
-            Messages.showWarningDialog(moduleComboBox, PluginPackerBundle.message("please.select.module"), PluginPackerBundle.message("packing.plugin"));
-            moduleComboBox.requestFocus();
-            return false;
-        }
         String text = packagePatternTextFieldWithStoredHistory.getText();
         if (StringUtil.isEmptyOrSpaces(text)) {
             Messages.showWarningDialog(packagePatternTextFieldWithStoredHistory, PluginPackerBundle.message("please.enter.pattern.for.plugin.package"), PluginPackerBundle.message("packing.plugin"));
@@ -196,6 +203,7 @@ final class PluginPackerForm {
         PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
         propertiesComponent.setValue(PROPERTY_INBOX_SOURCES, String.valueOf(inboxSourcesButton.isSelected()));
         propertiesComponent.setValue(PROPERTY_BUILD_SOURCES, String.valueOf(buildSourcesPackageAlsoCheckBox.isSelected()));
+        propertiesComponent.setValue(PROPERTY_SILENT_OVERWRITE, String.valueOf(silentOverwriteCheckBox.isSelected()));
         packagePatternTextFieldWithStoredHistory.addCurrentTextToHistory();
         inboxSourcesPatternTextFieldWithStoredHistory.addCurrentTextToHistory();
         outboxSourcesPatternTextFieldWithStoredHistory.addCurrentTextToHistory();
@@ -204,11 +212,11 @@ final class PluginPackerForm {
 
     @SuppressWarnings({"unchecked"})
     private void createUIComponents() {
-        packagePatternTextFieldWithStoredHistory = createHistoryTextField(PACKAGE_PATTERN_KEY, DEFAULT_PACKAGE_PATTERN);
+        packagePatternTextFieldWithStoredHistory = createHistoryTextField(PACKAGE_PATTERN_KEY, DEFAULT_PACKAGE_PATTERNS);
 
-        inboxSourcesPatternTextFieldWithStoredHistory = createHistoryTextField(INBOX_SOURCE_PATTERN_KEY, DEFAULT_SOURCES_INBOX_PATTERN);
+        inboxSourcesPatternTextFieldWithStoredHistory = createHistoryTextField(INBOX_SOURCE_PATTERN_KEY, DEFAULT_SOURCES_INBOX_PATTERNS);
 
-        outboxSourcesPatternTextFieldWithStoredHistory = createHistoryTextField(OUTBOX_SOURCE_PATTERN_KEY, DEFAULT_SOURCES_OUTBOX_PATTERN);
+        outboxSourcesPatternTextFieldWithStoredHistory = createHistoryTextField(OUTBOX_SOURCE_PATTERN_KEY, DEFAULT_SOURCES_OUTBOX_PATTERNS);
 
         String defaultOutputPath = "";
         if (defaultModule != null) {
@@ -244,16 +252,19 @@ final class PluginPackerForm {
     private static TextFieldWithStoredHistory createHistoryTextField(@NotNull String name, @NotNull String... defaultValues) {
         TextFieldWithStoredHistory storedHistory = new TextFieldWithStoredHistoryBugFixed(name);
         storedHistory.reset();
-        List<String> list = (List<String>) storedHistory.getHistory();
-        list.removeAll(Arrays.asList(defaultValues));
-        if (list.isEmpty()) {
+        List<String> history = (List<String>) storedHistory.getHistory();
+        if (history.isEmpty()) {
+            history.addAll(Arrays.asList(defaultValues));
             // Default histories
-            for (String defaultValue : defaultValues) {
-                storedHistory.setText(defaultValue);
-                storedHistory.addCurrentTextToHistory();
-            }
+            storedHistory.setText(defaultValues.length > 0 ? defaultValues[0] : "");
+            storedHistory.addCurrentTextToHistory();
         } else {
-            storedHistory.setSelectedItem(list.get(list.size() - 1));
+            for (String defaultValue : defaultValues) {
+                if (!history.contains(defaultValue)) {
+                    history.add(defaultValue);
+                }
+            }
+            storedHistory.setSelectedItem(history.get(0));
         }
         return storedHistory;
     }
@@ -270,8 +281,8 @@ final class PluginPackerForm {
                 component.setText(module.getName());
                 component.setIcon(module.getModuleType().getNodeIcon(false));
             } else {
-                component.setText(null);
-                component.setIcon(null);
+                component.setText(PluginPackerBundle.message("all.plugin.modules"));
+                component.setIcon(PluginModuleType.JAVA.getNodeIcon(false));
             }
             return component;
         }
@@ -281,14 +292,37 @@ final class PluginPackerForm {
      * Fixed text component. Enabling is valid now.
      */
     private static final class TextFieldWithStoredHistoryBugFixed extends TextFieldWithStoredHistory {
+        private final String propertyName;
+
         public TextFieldWithStoredHistoryBugFixed(String name) {
             super(name, false);
+            propertyName = name;
         }
 
         public void setEnabled(boolean enabled) {
             super.setEnabled(enabled);
             getTextEditor().setEnabled(enabled);
             getTextEditor().setEditable(enabled);
+        }
+
+        @SuppressWarnings({"unchecked"})
+        public void addCurrentTextToHistory() {
+            super.addCurrentTextToHistory();
+            // Current text must be first one
+            String current = getText();
+            List<String> history = (List<String>) getHistory();
+            history.remove(current);
+            history.add(0, current);
+            // Full replace property value
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < history.size(); i++) {
+                if (i > 0) {
+                    builder.append('\n');
+                }
+                builder.append(history.get(i));
+            }
+            PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
+            propertiesComponent.setValue(propertyName, builder.toString());
         }
     }
 
