@@ -1,0 +1,13 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin>
+  <name>Plugin name here</name>
+  <description>short description of the plugin</description>
+  <version>1.0</version>
+  <vendor>YourCompany</vendor>
+  <idea-version since-build="3000"/>
+    <project-components>
+        <component>
+            <implementation-class>org.intellij.trinkets.offlineModule.OfflineModuleManager</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>

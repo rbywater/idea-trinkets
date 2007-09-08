@@ -17,11 +17,13 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 public final class JumpToEditorAction extends EditorTreeViewAction {
     protected void actionPerformed(EditorTreeView view, AnActionEvent e) {
         DataContext dataContext = e.getDataContext();
-        Project project = (Project)e.getDataContext().getData(EditorTreeDataConstants.PROJECT);
         VirtualFile[] files = (VirtualFile[])dataContext.getData(EditorTreeDataConstants.VIRTUAL_FILE_ARRAY);
-        FileEditorManagerEx fileEditorManager = FileEditorManagerEx.getInstanceEx(project);
-        for (VirtualFile file : files) {
-            fileEditorManager.openFile(file, true);
+        if (files != null) {
+            Project project = (Project)e.getDataContext().getData(EditorTreeDataConstants.PROJECT);
+            FileEditorManagerEx fileEditorManager = FileEditorManagerEx.getInstanceEx(project);
+            for (VirtualFile file : files) {
+                fileEditorManager.openFile(file, true);
+            }
         }
         view.setVisible(false);
     }
