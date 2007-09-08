@@ -1,9 +1,10 @@
 package org.intellij.trinkets.hyperLink;
 
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.project.Project;
+import org.intellij.trinkets.hyperLink.actions.HyperLinkAction;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.intellij.trinkets.hyperLink.actions.HyperLinkAction;
 
 import java.util.regex.Pattern;
 
@@ -19,7 +20,7 @@ public interface HyperLinkReference {
 
     @NotNull
     @NonNls
-    Pattern getSearchPattern();
+    Pattern getSearchPattern(Project project);
 
     @NotNull
     @NonNls

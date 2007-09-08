@@ -2,7 +2,7 @@
 <idea-plugin>
     <name>OpenWith</name>
     <description>Enables "Open With" different editor for any files in project.</description>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <vendor>Alexey Efimov</vendor>
     <idea-version since-build="5231"/>
 
@@ -26,9 +26,6 @@
             <add-to-group anchor="after" group-id="CommanderPopupMenu" relative-to-action="EditSource" />
             <add-to-group anchor="after" group-id="Vcs.FileViewPopup" relative-to-action="EditSource" />
             <add-to-group anchor="after" group-id="UsageView.Popup" relative-to-action="EditSource" />
-            <add-to-group anchor="after" group-id="GuiDesigner.EditorPopupMenu" relative-to-action="EditSource" />
-            <add-to-group anchor="after" group-id="GuiDesigner.ComponentTreePopupMenu" relative-to-action="EditSource" />
-            <add-to-group anchor="after" group-id="GuiDesigner.PropertyInspectorPopupMenu" relative-to-action="EditSource" />
         </group>
     </actions>
 </idea-plugin>

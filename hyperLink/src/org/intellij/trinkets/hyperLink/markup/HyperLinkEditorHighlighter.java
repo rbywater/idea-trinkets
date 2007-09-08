@@ -9,18 +9,27 @@ import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vcs.IssueNavigationConfiguration;
+import com.intellij.openapi.vcs.IssueNavigationLink;
+import org.intellij.trinkets.hyperLink.HyperLinkReference;
+import org.intellij.trinkets.hyperLink.HyperLinkReferenceManager;
+import org.intellij.trinkets.hyperLink.IssueHyperLinkReference;
+import org.intellij.trinkets.hyperLink.actions.HyperLinkAction;
+import org.intellij.trinkets.hyperLink.actions.HyperLinkActions;
+import org.intellij.trinkets.hyperLink.actions.HyperLinkEvent;
+import org.intellij.trinkets.hyperLink.util.HyperLinkBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.intellij.trinkets.hyperLink.*;
-import org.intellij.trinkets.hyperLink.util.HyperLinkBundle;
-import org.intellij.trinkets.hyperLink.actions.HyperLinkAction;
-import org.intellij.trinkets.hyperLink.actions.HyperLinkEvent;
 
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,16 +119,23 @@ final class HyperLinkEditorHighlighter implements Disposable {
                 int lineStartOffset = document.getLineStartOffset(logicalPosition.line);
                 int lineEndOffset = document.getLineEndOffset(logicalPosition.line);
                 CharSequence line = document.getCharsSequence().subSequence(lineStartOffset, lineEndOffset);
-                HyperLinkReference[] patterns = HyperLinkReferenceManager.getInstance().getReferences();
-                for (HyperLinkReference reference : patterns) {
-                    Pattern pattern = reference.getSearchPattern();
+                List<HyperLinkReference> references = new ArrayList<HyperLinkReference>();
+                Project project = editor.getProject();
+                IssueNavigationConfiguration inc = IssueNavigationConfiguration.getInstance(project);
+                List<IssueNavigationLink> list = inc.getLinks();
+                for (IssueNavigationLink link : list) {
+                    references.add(new IssueHyperLinkReference(link, HyperLinkColors.REFERENCE, HyperLinkActions.URL_ACTION));
+                }
+                references.addAll(Arrays.asList(HyperLinkReferenceManager.getInstance().getReferences()));
+                for (HyperLinkReference reference : references) {
+                    Pattern pattern = reference.getSearchPattern(null);
                     Matcher matcher = pattern.matcher(line);
                     while (matcher.find()) {
                         int start = matcher.start();
                         int end = matcher.end();
                         if (start <= logicalPosition.column && end >= logicalPosition.column) {
                             RangeMarker range = document.createRangeMarker(
-                                lineStartOffset + start, lineStartOffset + end
+                                    lineStartOffset + start, lineStartOffset + end
                             );
 
                             return new MyMarker(reference, range, matcher.reset(matcher.group()));
@@ -180,15 +196,16 @@ final class HyperLinkEditorHighlighter implements Disposable {
         private RangeHighlighter highlighter;
 
         public MyMarker(
-            @NotNull HyperLinkReference reference,
-            @NotNull RangeMarker range,
-            @NotNull Matcher matcher
+                @NotNull HyperLinkReference reference,
+                @NotNull RangeMarker range,
+                @NotNull Matcher matcher
         ) {
             this.reference = reference;
             this.range = range;
             this.matcher = matcher;
         }
 
+        @NotNull
         public HyperLinkReference getReference() {
             return reference;
         }
@@ -224,11 +241,11 @@ final class HyperLinkEditorHighlighter implements Disposable {
                 return true;
             }
             if (obj instanceof MyMarker) {
-                MyMarker other = (MyMarker)obj;
+                MyMarker other = (MyMarker) obj;
                 return reference.equals(other.reference) &&
-                    range.getStartOffset() == other.getRange().getStartOffset() &&
-                    range.getEndOffset() == other.getRange().getEndOffset() &&
-                    range.getDocument().equals(other.getRange().getDocument());
+                        range.getStartOffset() == other.getRange().getStartOffset() &&
+                        range.getEndOffset() == other.getRange().getEndOffset() &&
+                        range.getDocument().equals(other.getRange().getDocument());
             }
             return false;
         }
@@ -251,11 +268,11 @@ final class HyperLinkEditorHighlighter implements Disposable {
             if (visible) {
                 if (highlighter == null) {
                     highlighter = editor.getMarkupModel().addRangeHighlighter(
-                        range.getStartOffset(),
-                        range.getEndOffset(),
-                        HighlighterLayer.ADDITIONAL_SYNTAX,
-                        reference.getTextAttributes(),
-                        HighlighterTargetArea.EXACT_RANGE
+                            range.getStartOffset(),
+                            range.getEndOffset(),
+                            HighlighterLayer.ADDITIONAL_SYNTAX,
+                            reference.getTextAttributes(),
+                            HighlighterTargetArea.EXACT_RANGE
                     );
                 }
             } else {

@@ -11,7 +11,9 @@ import java.text.MessageFormat;
  * @author Alexey Efimov
  */
 public interface HyperLinkActions {
-    /** Open url by {@link BrowserUtil}. */
+    /**
+     * Open url by {@link BrowserUtil}.
+     */
     HyperLinkAction URL_ACTION = new HyperLinkAction() {
         public void performAction(@NotNull HyperLinkEvent event) {
             BrowserUtil.launchBrowser(event.getReferenceText());

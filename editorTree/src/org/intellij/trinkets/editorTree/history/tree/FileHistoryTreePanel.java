@@ -152,6 +152,59 @@ public final class FileHistoryTreePanel extends JPanel implements DataProvider, 
         });
         add(new JScrollPane(tree), BorderLayout.CENTER);
 
+        // TODO: Here exception:
+        //Access is allowed from event dispatch thread only.
+        //Details: Current thread: Thread[ApplicationImpl pooled thread,6,Idea Thread Group] 22029867
+        //Our dispatch thread:Thread[AWT-EventQueue-1,6,Idea Thread Group] 19275957
+        //SystemEventQueueThread: Thread[AWT-EventQueue-1,6,Idea Thread Group] 19275957
+        //
+        //java.lang.Throwable
+        //    at com.intellij.openapi.diagnostic.Logger.error(Logger.java:52)
+        //    at com.intellij.openapi.application.impl.ApplicationImpl.a(ApplicationImpl.java:77)
+        //    at com.intellij.openapi.application.impl.ApplicationImpl.assertIsDispatchThread(ApplicationImpl.java:271)
+        //    at com.intellij.openapi.application.impl.LaterInvocator.getCurrentModalEntities(LaterInvocator.java:94)
+        //    at com.intellij.openapi.application.impl.ApplicationImpl.getCurrentModalityState(ApplicationImpl.java:94)
+        //    at com.intellij.openapi.application.ModalityState.current(ModalityState.java:30)
+        //    at com.intellij.util.Alarm.addRequest(Alarm.java:86)
+        //    at org.intellij.trinkets.editorTree.history.tree.FileHistoryTreePanel.<init>(FileHistoryTreePanel.java:155)
+        //    at org.intellij.trinkets.editorTree.history.FileHistoryManager.<init>(FileHistoryManager.java:46)
+        //    at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+        //    at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:39)
+        //    at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:27)
+        //    at java.lang.reflect.Constructor.newInstance(Constructor.java:494)
+        //    at org.picocontainer.defaults.InstantiatingComponentAdapter.newInstance(InstantiatingComponentAdapter.java:193)
+        //    at org.picocontainer.defaults.ConstructorInjectionComponentAdapter$1.run(ConstructorInjectionComponentAdapter.java:220)
+        //    at org.picocontainer.defaults.ThreadLocalCyclicDependencyGuard.observe(ThreadLocalCyclicDependencyGuard.java:53)
+        //    at org.picocontainer.defaults.ConstructorInjectionComponentAdapter.getComponentInstance(ConstructorInjectionComponentAdapter.java:248)
+        //    at org.picocontainer.defaults.DecoratingComponentAdapter.getComponentInstance(DecoratingComponentAdapter.java:60)
+        //    at org.picocontainer.defaults.CachingComponentAdapter.getComponentInstance(CachingComponentAdapter.java:58)
+        //    at com.intellij.openapi.components.impl.ComponentManagerImpl$ComponentConfigComponentAdapter$1.getComponentInstance(ComponentManagerImpl.java:6)
+        //    at com.intellij.openapi.components.impl.ComponentManagerImpl$ComponentConfigComponentAdapter.getComponentInstance(ComponentManagerImpl.java:32)
+        //    at com.intellij.util.pico.DefaultPicoContainer.getLocalInstance(DefaultPicoContainer.java:193)
+        //    at com.intellij.util.pico.DefaultPicoContainer.getInstance(DefaultPicoContainer.java:180)
+        //    at com.intellij.util.pico.DefaultPicoContainer.getComponentInstance(DefaultPicoContainer.java:162)
+        //    at org.picocontainer.alternatives.AbstractDelegatingMutablePicoContainer.getComponentInstance(AbstractDelegatingMutablePicoContainer.java:75)
+        //    at com.intellij.openapi.components.impl.ComponentManagerImpl.a(ComponentManagerImpl.java:25)
+        //    at com.intellij.openapi.components.impl.ComponentManagerImpl.a(ComponentManagerImpl.java:170)
+        //    at com.intellij.openapi.components.impl.ComponentManagerImpl.initComponents(ComponentManagerImpl.java:19)
+        //    at com.intellij.openapi.components.impl.ComponentManagerImpl.init(ComponentManagerImpl.java:28)
+        //    at com.intellij.openapi.project.impl.ProjectImpl.init(ProjectImpl.java:70)
+        //    at com.intellij.openapi.components.impl.stores.ProjectStoreImpl.loadProject(ProjectStoreImpl.java:164)
+        //    at com.intellij.openapi.project.impl.ProjectManagerImpl.a(ProjectManagerImpl.java:197)
+        //    at com.intellij.openapi.project.impl.ProjectManagerImpl.access$100(ProjectManagerImpl.java:88)
+        //    at com.intellij.openapi.project.impl.ProjectManagerImpl$6.run(ProjectManagerImpl.java:8)
+        //    at com.intellij.openapi.progress.impl.ProgressManagerImpl$2.run(ProgressManagerImpl.java:8)
+        //    at com.intellij.openapi.progress.impl.ProgressManagerImpl.executeProcessUnderProgress(ProgressManagerImpl.java:79)
+        //    at com.intellij.openapi.progress.impl.ProgressManagerImpl.runProcess(ProgressManagerImpl.java:2)
+        //    at com.intellij.openapi.application.impl.ApplicationImpl$7$1.run(ApplicationImpl.java:4)
+        //    at com.intellij.openapi.application.impl.ApplicationImpl$5.run(ApplicationImpl.java:2)
+        //    at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:417)
+        //    at java.util.concurrent.FutureTask$Sync.innerRun(FutureTask.java:269)
+        //    at java.util.concurrent.FutureTask.run(FutureTask.java:123)
+        //    at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:650)
+        //    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:675)
+        //    at java.lang.Thread.run(Thread.java:595)
+        //    at com.intellij.openapi.application.impl.ApplicationImpl$1$1.run(ApplicationImpl.java:6)
         alarm.addRequest(updateUITask, 60000);
     }
 

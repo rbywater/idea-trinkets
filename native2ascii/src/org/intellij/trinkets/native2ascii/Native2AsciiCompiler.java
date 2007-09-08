@@ -83,6 +83,22 @@ public final class Native2AsciiCompiler implements TranslatingCompiler {
                     application.invokeLater(new Runnable() {
                         public void run() {
                             CompilerConfigurable cConfigurable = project.getComponent(CompilerConfigurable.class);
+                            // TODO: Here: NPE
+                            // java.lang.NullPointerException
+                            //	at com.intellij.ide.actions.ShowSettingsUtilImpl.a(ShowSettingsUtilImpl.java:12)
+                            //	at com.intellij.ide.actions.ShowSettingsUtilImpl.editConfigurable(ShowSettingsUtilImpl.java:6)
+                            //	at org.intellij.trinkets.native2ascii.Native2AsciiCompiler$2.run(Native2AsciiCompiler.java:86)
+                            //	at com.intellij.openapi.application.impl.LaterInvocator$FlushQueue.run(LaterInvocator.java:21)
+                            //	at java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:209)
+                            //	at java.awt.EventQueue.dispatchEvent(EventQueue.java:461)
+                            //	at com.intellij.ide.IdeEventQueue.c(IdeEventQueue.java:6)
+                            //	at com.intellij.ide.IdeEventQueue.b(IdeEventQueue.java:180)
+                            //	at com.intellij.ide.IdeEventQueue.dispatchEvent(IdeEventQueue.java:48)
+                            //	at java.awt.EventDispatchThread.pumpOneEventForHierarchy(EventDispatchThread.java:242)
+                            //	at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:163)
+                            //	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:157)
+                            //	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:149)
+                            //	at java.awt.EventDispatchThread.run(EventDispatchThread.java:110)
                             ShowSettingsUtil.getInstance().editConfigurable(project, cConfigurable);
                         }
                     });

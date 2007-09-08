@@ -7,6 +7,7 @@ import com.intellij.openapi.editor.event.EditorFactoryAdapter;
 import com.intellij.openapi.editor.event.EditorFactoryEvent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Hyper link highlighter manager
@@ -18,7 +19,9 @@ final class HyperLinkEditorHighlighterManager implements ApplicationComponent {
 
     private final EditorListener editorListener = new EditorListener();
 
-    @NonNls public String getComponentName() {
+    @NotNull
+    @NonNls
+    public String getComponentName() {
         return "HyperLinkHighlighterManager";
     }
 
