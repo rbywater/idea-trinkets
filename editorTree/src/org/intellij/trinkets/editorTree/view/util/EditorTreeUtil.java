@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Arrays;
 
 /**
  * Utility class for {@link org.intellij.trinkets.editorTree.view.EditorTreeView}.
@@ -32,9 +33,7 @@ public final class EditorTreeUtil {
             while (enumeration.hasMoreElements()) {
                 EditorTreeNode child = (EditorTreeNode)enumeration.nextElement();
                 VirtualFile[] inheritedFiles = getFiles(child);
-                for (VirtualFile file : inheritedFiles) {
-                    files.add(file);
-                }
+                files.addAll(Arrays.asList(inheritedFiles));
             }
         }
         return files.toArray(VirtualFile.EMPTY_ARRAY);

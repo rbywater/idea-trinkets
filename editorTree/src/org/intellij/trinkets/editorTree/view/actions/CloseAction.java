@@ -17,11 +17,13 @@ import com.intellij.openapi.project.Project;
 public final class CloseAction extends EditorTreeViewAction {
     protected void actionPerformed(EditorTreeView view, AnActionEvent e) {
         DataContext dataContext = e.getDataContext();
-        Project project = (Project)e.getDataContext().getData(EditorTreeDataConstants.PROJECT);
         VirtualFile[] files = (VirtualFile[])dataContext.getData(EditorTreeDataConstants.VIRTUAL_FILE_ARRAY);
-        FileEditorManagerEx fileEditorManager = FileEditorManagerEx.getInstanceEx(project);
-        for (VirtualFile file : files) {
-            fileEditorManager.closeFile(file);
+        if (files != null) {
+            Project project = (Project)e.getDataContext().getData(EditorTreeDataConstants.PROJECT);
+            FileEditorManagerEx fileEditorManager = FileEditorManagerEx.getInstanceEx(project);
+            for (VirtualFile file : files) {
+                fileEditorManager.closeFile(file);
+            }
         }
     }
 }

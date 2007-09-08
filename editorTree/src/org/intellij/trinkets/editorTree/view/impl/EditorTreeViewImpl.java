@@ -221,9 +221,7 @@ final class EditorTreeViewImpl implements EditorTreeView, DataProvider {
             for (TreePath treePath : selectionPaths) {
                 EditorTreeNode node = (EditorTreeNode)treePath.getLastPathComponent();
                 VirtualFile[] inheritedFiles = EditorTreeUtil.getFiles(node);
-                for (VirtualFile file : inheritedFiles) {
-                    files.add(file);
-                }
+                files.addAll(Arrays.asList(inheritedFiles));
             }
             return files.toArray(VirtualFile.EMPTY_ARRAY);
         }

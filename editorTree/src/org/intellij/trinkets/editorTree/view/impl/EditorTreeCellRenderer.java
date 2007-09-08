@@ -16,7 +16,7 @@ final class EditorTreeCellRenderer extends ColoredTreeCellRenderer {
         if (file != null) {
             append(file.getPresentableName(), SimpleTextAttributes.SIMPLE_CELL_ATTRIBUTES);
             FileType fileType = file.getFileType();
-            Icon fileTypeIcon = fileType != null ? fileType.getIcon() : null;
+            Icon fileTypeIcon = fileType.getIcon();
             if (file.isDirectory()) {
                 if (StdFileTypes.ARCHIVE.equals(fileType)) {
                     setIcon(fileTypeIcon);
