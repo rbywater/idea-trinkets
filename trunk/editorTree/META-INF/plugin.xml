@@ -3,7 +3,7 @@
     <vendor>Alexey Efimov</vendor>
 
     <name>EditorTree</name>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <description>Show popup with currently opened files in editors organized by tree.</description>
     <resource-bundle>org.intellij.trinkets.editorTree.util.EditorTreeBundle</resource-bundle>

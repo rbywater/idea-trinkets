@@ -3,20 +3,20 @@
     <vendor>Alexey Efimov</vendor>
 
     <name>HyperLink</name>
-    <version>1.0.3</version>
+    <version>1.1</version>
 
-    <description>Support for hyper link highlighting in IDEA editors (Ctrl+Mouse) with mouse click to open (Ctrl+Click).</description>
+    <description>Support for hyper link highlighting in IDEA editors (Ctrl+Mouse) with mouse click to open (Ctrl+Click).
+    </description>
     <resource-bundle>org.intellij.trinkets.hyperLink.util.HyperLinkBundle</resource-bundle>
 
-    <idea-version since-build="4089"/>
+    <idea-version since-build="7104"/>
 
     <application-components>
         <component>
-            <interface-class>org.intellij.trinkets.hyperLink.HyperLinkReferenceManager</interface-class>
-            <implementation-class>org.intellij.trinkets.hyperLink.impl.HyperLinkReferenceManagerImpl</implementation-class>
+            <implementation-class>org.intellij.trinkets.hyperLink.markup.HyperLinkEditorHighlighterManager</implementation-class>
         </component>
         <component>
-            <implementation-class>org.intellij.trinkets.hyperLink.markup.HyperLinkEditorHighlighterManager</implementation-class>
+            <implementation-class>org.intellij.trinkets.hyperLink.HyperLinkReferenceManager</implementation-class>
         </component>
     </application-components>
 </idea-plugin>

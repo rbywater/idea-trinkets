@@ -1,9 +1,10 @@
 package org.intellij.trinkets.hyperLink;
 
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.project.Project;
+import org.intellij.trinkets.hyperLink.actions.HyperLinkAction;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.intellij.trinkets.hyperLink.actions.HyperLinkAction;
 
 import java.util.regex.Pattern;
 
@@ -15,11 +16,11 @@ public class DefaultHyperLinkReference implements HyperLinkReference {
     private final HyperLinkAction action;
 
     public DefaultHyperLinkReference(
-        @NotNull @NonNls String name,
-        @NotNull @NonNls String searchPattern,
-        @NotNull @NonNls String replacePattern,
-        @NotNull TextAttributes textAttributes,
-        @NotNull HyperLinkAction action
+            @NotNull @NonNls String name,
+            @NotNull @NonNls String searchPattern,
+            @NotNull @NonNls String replacePattern,
+            @NotNull TextAttributes textAttributes,
+            @NotNull HyperLinkAction action
     ) {
         this.name = name;
         this.searchPattern = Pattern.compile(searchPattern);
@@ -36,7 +37,7 @@ public class DefaultHyperLinkReference implements HyperLinkReference {
 
     @NotNull
     @NonNls
-    public Pattern getSearchPattern() {
+    public Pattern getSearchPattern(Project project) {
         return searchPattern;
     }
 
@@ -61,7 +62,7 @@ public class DefaultHyperLinkReference implements HyperLinkReference {
             return true;
         }
         if (obj instanceof DefaultHyperLinkReference) {
-            DefaultHyperLinkReference other = (DefaultHyperLinkReference)obj;
+            DefaultHyperLinkReference other = (DefaultHyperLinkReference) obj;
             return name.equals(other.name) && searchPattern.equals(other.searchPattern);
 
         }
