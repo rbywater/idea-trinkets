@@ -121,10 +121,15 @@ final class HyperLinkEditorHighlighter implements Disposable {
                 CharSequence line = document.getCharsSequence().subSequence(lineStartOffset, lineEndOffset);
                 List<HyperLinkReference> references = new ArrayList<HyperLinkReference>();
                 Project project = editor.getProject();
-                IssueNavigationConfiguration inc = IssueNavigationConfiguration.getInstance(project);
-                List<IssueNavigationLink> list = inc.getLinks();
-                for (IssueNavigationLink link : list) {
-                    references.add(new IssueHyperLinkReference(link, HyperLinkColors.REFERENCE, HyperLinkActions.URL_ACTION));
+                try {
+                    IssueNavigationConfiguration inc = IssueNavigationConfiguration.getInstance(project);
+                    List<IssueNavigationLink> list = inc.getLinks();
+                    for (IssueNavigationLink link : list) {
+                        references.add(new IssueHyperLinkReference(link, HyperLinkColors.REFERENCE, HyperLinkActions.URL_ACTION));
+                    }
+                } catch (Exception e) {
+                    // No issue configuration...
+                    // TODO: Ask about NPE in getInstance to yole
                 }
                 references.addAll(Arrays.asList(HyperLinkReferenceManager.getInstance().getReferences()));
                 for (HyperLinkReference reference : references) {
