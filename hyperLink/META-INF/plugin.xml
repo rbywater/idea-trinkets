@@ -3,7 +3,7 @@
     <vendor>Alexey Efimov</vendor>
 
     <name>HyperLink</name>
-    <version>1.1</version>
+    <version>1.1.1</version>
 
     <description>Support for hyper link highlighting in IDEA editors (Ctrl+Mouse) with mouse click to open (Ctrl+Click).
     </description>
