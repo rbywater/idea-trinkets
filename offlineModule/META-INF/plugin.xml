@@ -3,7 +3,7 @@
     <name>Offline Module</name>
     <id>OfflineModule</id>
     <description>Disable or enable modules in project without deleting</description>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <vendor>Alexey Efimov</vendor>
     <idea-version since-build="7104"/>
     <project-components>

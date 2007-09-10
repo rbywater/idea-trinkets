@@ -4,16 +4,14 @@ import com.intellij.ide.projectView.*;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -21,8 +19,8 @@ import com.intellij.psi.PsiManager;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.util.Icons;
 import com.intellij.util.ui.EmptyIcon;
-import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.intellij.trinkets.offlineModule.util.OfflineModuleBundle;
+import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,19 +36,17 @@ import java.util.List;
  *
  * @author Alexey Efimov
  */
-@State(
-        name = "OfflineModuleManager",
-        storages = {
-        @Storage(
-                id = "disabled.modules",
-                file = "$WORKSPACE_FILE$"
-        )}
-)
-public final class OfflineModuleManager implements ProjectComponent, PersistentStateComponent<OfflineModuleManager>, TreeStructureProvider {
+public final class OfflineModuleManager implements ProjectComponent, JDOMExternalizable, TreeStructureProvider {
     private static final Icon ICON_MODULE_GROUP_OPEN = IconLoader.findIcon("/nodes/moduleGroupOpen.png");
     private static final Icon ICON_MODULE_GROUP_CLOSED = IconLoader.findIcon("/nodes/moduleGroupClosed.png");
     private static final Icon ICON_DISABLED_MODULE_GROUP_OPEN = layerIcons(ICON_MODULE_GROUP_OPEN, Icons.EXCLUDED_FROM_COMPILE_ICON);
     private static final Icon ICON_DISABLED_MODULE_GROUP_CLOSED = layerIcons(ICON_MODULE_GROUP_CLOSED, Icons.EXCLUDED_FROM_COMPILE_ICON);
+    @NonNls
+    private static final String JDOM_ATTR_PATH = "path";
+    @NonNls
+    private static final String JDOM_NODE_GROUP = "group";
+    @NonNls
+    private static final String JDOM_NODE_MODULE = "module";
 
     private static Icon layerIcons(Icon... layers) {
         if (layers != null && layers.length > 0) {
@@ -63,7 +59,7 @@ public final class OfflineModuleManager implements ProjectComponent, PersistentS
         return new EmptyIcon(0, 0);
     }
 
-    public final List<Object[]> MODULES = new ArrayList<Object[]>();
+    public final List<Pair<String, String[]>> MODULES = new ArrayList<Pair<String, String[]>>();
     private final Project project;
 
     public static OfflineModuleManager getInstance(Project project) {
@@ -98,17 +94,16 @@ public final class OfflineModuleManager implements ProjectComponent, PersistentS
             public void run() {
                 String[] groupPath = moduleManager.getModuleGroupPath(module);
                 String filePath = module.getModuleFilePath();
-                Iterator<Object[]> iterator = MODULES.iterator();
+                Iterator<Pair<String, String[]>> iterator = MODULES.iterator();
                 while (iterator.hasNext()) {
-                    Object[] mp = iterator.next();
-                    String first = (String) mp[0];
+                    Pair<String, String[]> mp = iterator.next();
+                    String first = mp.getFirst();
                     if (filePath.equals(first)) {
                         iterator.remove();
                     }
                 }
-                MODULES.add(new Object[]{filePath, groupPath});
+                MODULES.add(new Pair<String, String[]>(filePath, groupPath));
                 moduleManager.disposeModule(module);
-                ProjectView.getInstance(project).refresh();
             }
         });
     }
@@ -122,15 +117,17 @@ public final class OfflineModuleManager implements ProjectComponent, PersistentS
                     ModifiableModuleModel model = moduleManager.getModifiableModel();
                     Module module = model.loadModule(path);
                     model.commit();
-                    Iterator<Object[]> it = MODULES.iterator();
+                    Iterator<Pair<String, String[]>> it = MODULES.iterator();
                     while (it.hasNext()) {
-                        Object[] pair = it.next();
-                        if (path.equals(pair[0])) {
+                        Pair<String, String[]> pair = it.next();
+                        if (path.equals(pair.getFirst())) {
                             it.remove();
-                            model.setModuleGroupPath(module, (String[]) pair[1]);
+                            String[] groupPath = pair.getSecond();
+                            if (groupPath != null && groupPath.length > 0) {
+                                model.setModuleGroupPath(module, groupPath);
+                            }
                         }
                     }
-                    ProjectView.getInstance(project).refresh();
                 } catch (Exception ex) {
                     Messages.showErrorDialog(project, ex.getLocalizedMessage(), OfflineModuleBundle.message("can.t.load.module"));
                 }
@@ -138,12 +135,44 @@ public final class OfflineModuleManager implements ProjectComponent, PersistentS
         });
     }
 
-    public OfflineModuleManager getState() {
-        return this;
+    public void readExternal(Element element) throws InvalidDataException {
+        List list = element.getChildren(JDOM_NODE_MODULE);
+        if (list != null) {
+            for (Object e : list) {
+                Element module = (Element) e;
+                String path = module.getAttributeValue(JDOM_ATTR_PATH);
+                String[] group = null;
+                List children = module.getChildren(JDOM_NODE_GROUP);
+                if (children != null) {
+                    List<String> groupList = new ArrayList<String>();
+                    for (Object ge : children) {
+                        Element groupPath = (Element) ge;
+                        String value = groupPath.getAttributeValue(JDOM_ATTR_PATH);
+                        if (value != null && !StringUtil.isEmptyOrSpaces(value)) {
+                            groupList.add(value);
+                        }
+                    }
+                    group = groupList.toArray(new String[groupList.size()]);
+                }
+                MODULES.add(new Pair<String, String[]>(path, group));
+            }
+        }
     }
 
-    public void loadState(OfflineModuleManager state) {
-        XmlSerializerUtil.copyBean(state, this);
+    public void writeExternal(Element element) throws WriteExternalException {
+        for (Pair<String, String[]> pair : MODULES) {
+            Element module = new Element(JDOM_NODE_MODULE);
+            module.setAttribute(JDOM_ATTR_PATH, pair.getFirst());
+            String[] group = pair.getSecond();
+            if (group != null) {
+                for (String path : group) {
+                    Element groupPath = new Element(JDOM_NODE_GROUP);
+                    groupPath.setAttribute(JDOM_ATTR_PATH, path);
+                    module.addContent(groupPath);
+                }
+            }
+            element.addContent(module);
+        }
     }
 
     public Collection<AbstractTreeNode> modify(AbstractTreeNode parent, Collection<AbstractTreeNode> children, ViewSettings settings) {
@@ -168,8 +197,8 @@ public final class OfflineModuleManager implements ProjectComponent, PersistentS
         }
 
         public boolean contains(@NotNull VirtualFile file) {
-            for (Object[] pair : MODULES) {
-                if (file.getPath().equals(pair[0])) {
+            for (Pair<String, String[]> pair : MODULES) {
+                if (file.getPath().equals(pair.getFirst())) {
                     return true;
                 }
             }
@@ -180,8 +209,8 @@ public final class OfflineModuleManager implements ProjectComponent, PersistentS
         public Collection<? extends AbstractTreeNode> getChildren() {
             Collection<PsiFileNode> children = new ArrayList<PsiFileNode>();
             PsiManager psiManager = PsiManager.getInstance(project);
-            for (Object[] pair : MODULES) {
-                VirtualFile vf = LocalFileSystem.getInstance().findFileByPath((String) pair[0]);
+            for (Pair<String, String[]> pair : MODULES) {
+                VirtualFile vf = LocalFileSystem.getInstance().findFileByPath(pair.getFirst());
                 if (vf != null) {
                     PsiFile psiFile = psiManager.findFile(vf);
                     if (psiFile != null) {
