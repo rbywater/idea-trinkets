@@ -252,7 +252,7 @@ final class PluginPackerForm {
     private static TextFieldWithStoredHistory createHistoryTextField(@NotNull String name, @NotNull String... defaultValues) {
         TextFieldWithStoredHistory storedHistory = new TextFieldWithStoredHistoryBugFixed(name);
         storedHistory.reset();
-        List<String> history = (List<String>) storedHistory.getHistory();
+        List<String> history = storedHistory.getHistory();
         if (history.isEmpty()) {
             history.addAll(Arrays.asList(defaultValues));
             // Default histories
@@ -295,7 +295,7 @@ final class PluginPackerForm {
         private final String propertyName;
 
         public TextFieldWithStoredHistoryBugFixed(String name) {
-            super(name, false);
+            super(name);
             propertyName = name;
         }
 
@@ -310,7 +310,7 @@ final class PluginPackerForm {
             super.addCurrentTextToHistory();
             // Current text must be first one
             String current = getText();
-            List<String> history = (List<String>) getHistory();
+            List<String> history = getHistory();
             history.remove(current);
             history.add(0, current);
             // Full replace property value
