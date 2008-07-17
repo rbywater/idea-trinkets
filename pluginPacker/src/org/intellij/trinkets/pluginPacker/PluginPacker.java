@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.io.ZipUtil;
@@ -376,7 +377,7 @@ public final class PluginPacker {
                 final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
                 final HashSet<String> writtenItemRelativePaths = new HashSet<String>();
                 for (Module dependence : modules) {
-                    final VirtualFile compilerOutputPath = ModuleRootManager.getInstance(dependence).getCompilerOutputPath();
+                    final VirtualFile compilerOutputPath = CompilerPaths.getModuleOutputDirectory(dependence, false);
                     if (compilerOutputPath != null) {
                         ZipUtil.addDirToZipRecursively(jarPlugin, jarFile, new File(compilerOutputPath.getPath()), "", new FileFilter() {
                             public boolean accept(File pathname) {

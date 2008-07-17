@@ -282,7 +282,7 @@ final class PluginPackerForm {
                 component.setIcon(module.getModuleType().getNodeIcon(false));
             } else {
                 component.setText(PluginPackerBundle.message("all.plugin.modules"));
-                component.setIcon(PluginModuleType.JAVA.getNodeIcon(false));
+                component.setIcon(PluginModuleType.getInstance().getNodeIcon(false));
             }
             return component;
         }
@@ -338,11 +338,6 @@ final class PluginPackerForm {
                     component.addCurrentTextToHistory();
                 }
             });
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            outputPathDescriptor.setContextModule(getModule());
-            super.actionPerformed(e);
         }
     }
 
