@@ -2,8 +2,8 @@
 <idea-plugin>
     <name>Eclipse Mode</name>
     <id>EclipseMode</id>
-    <description>Enable eclipse features in IntelliJ IDEA</description>
-    <version>0.1</version>
+    <description>Enable Eclipse features in IntelliJ IDEA such as incremental compilation.</description>
+    <version>0.1.1</version>
     <vendor>Alexey Efimov</vendor>
     <idea-version since-build="9000"/>
 
