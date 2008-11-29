@@ -260,10 +260,11 @@
   <component name="ProjectFileVersion" converted="true" />
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/eclipseMode/eclipseMode.iml" filepath="$PROJECT_DIR$/eclipseMode/eclipseMode.iml" />
       <module fileurl="file://$PROJECT_DIR$/pluginPacker/pluginPacker.iml" filepath="$PROJECT_DIR$/pluginPacker/pluginPacker.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" assert-keyword="true" jdk-15="true" project-jdk-name="idea" project-jdk-type="IDEA JDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="idea" project-jdk-type="IDEA JDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="ResourceManagerContainer">
@@ -285,7 +286,7 @@
     <RUBY_DOC NAME="NUMBER" VALUE="0" />
   </component>
   <component name="SvnBranchConfigurationManager">
-    <option name="myVersion" value="123" />
+    <option name="myVersion" value="124" />
   </component>
   <component name="ThePluginSettings">
     <option name="bambooConfiguration">
