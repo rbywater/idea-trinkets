@@ -1,6 +1,6 @@
 package org.intellij.trinkets.eclipseMode.incrementalCompiler;
 
-import com.intellij.compiler.impl.ModuleCompileScope;
+import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -56,10 +56,12 @@ public class SaveListener extends VirtualFileAdapter {
                     if (module != null) {
                         CompilerManager compilerManager = CompilerManager.getInstance(project);
                         if (!compilerManager.isCompilationActive() &&
-                                !compilerManager.isExcludedFromCompilation(event.getFile()) &&
-                                !compilerManager.isUpToDate(new ModuleCompileScope(module, false))) {
-                            // Changed file found in module. Make it.
-                            compilerManager.make(module, null);
+                                !compilerManager.isExcludedFromCompilation(event.getFile())) {
+                            CompileScope compileScope = compilerManager.createModuleCompileScope(module, false);
+                            if (!compilerManager.isUpToDate(compileScope)) {
+                                // Changed file found in module. Make it.
+                                compilerManager.make(compileScope, null);
+                            }
                         }
                     }
                 }

@@ -1,6 +1,5 @@
 package org.intellij.trinkets.pluginPacker.actions;
 
-import com.intellij.compiler.impl.CompilerUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataKeys;
@@ -12,6 +11,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.trinkets.pluginPacker.PluginPacker;
 import org.intellij.trinkets.pluginPacker.ui.PluginPackerDialog;
 import org.intellij.trinkets.pluginPacker.util.PluginModuleUtil;
@@ -26,6 +27,7 @@ import java.util.List;
  * @author Alexey Efimov
  */
 public final class PackAction extends AnAction {
+    @Override
     public void actionPerformed(AnActionEvent e) {
         final Project project = e.getData(DataKeys.PROJECT);
         if (project != null) {
@@ -67,7 +69,10 @@ public final class PackAction extends AnAction {
                                         if (modules.size() > 0) {
                                             ApplicationManager.getApplication().runReadAction(new Runnable() {
                                                 public void run() {
-                                                    CompilerUtil.refreshPaths(new String[]{directory});
+                                                    LocalFileSystem localfilesystem = LocalFileSystem.getInstance();
+                                                    VirtualFile virtualfile = localfilesystem.refreshAndFindFileByPath(directory);
+                                                    if (virtualfile != null)
+                                                        virtualfile.refresh(false, false);
                                                 }
                                             });
                                         }
@@ -93,6 +98,7 @@ public final class PackAction extends AnAction {
         return pluginModules;
     }
 
+    @Override
     public void update(AnActionEvent e) {
         final Project project = e.getData(DataKeys.PROJECT);
         boolean enabled = project != null && !getPluginModules(project).isEmpty();
