@@ -16,7 +16,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TextFieldWithStoredHistory;
-import com.intellij.util.ui.update.ComponentDisposable;
 import org.intellij.trinkets.pluginPacker.util.PluginPackerBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -123,7 +122,7 @@ final class PluginPackerForm {
         final Application application = ApplicationManager.getApplication();
         if (application != null && !application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
             JTextField field = outputPathTextFieldWithBrowseButton.getChildComponent().getTextEditor();
-            FileChooserFactory.getInstance().installFileCompletion(field, outputPathDescriptor, true, new ComponentDisposable(field, project));
+            FileChooserFactory.getInstance().installFileCompletion(field, outputPathDescriptor, true, null);
         }
         silentOverwriteCheckBox.setSelected(propertiesComponent.isTrueValue(PROPERTY_SILENT_OVERWRITE));
     }
