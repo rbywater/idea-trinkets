@@ -2,7 +2,7 @@ package org.intellij.trinkets.openWith.actions;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataConstants;
+import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
@@ -24,9 +24,10 @@ public final class OpenWithAction extends AnAction {
         this.fileType = fileType;
     }
 
+    @Override
     public void actionPerformed(AnActionEvent e) {
-        Project project = (Project) e.getDataContext().getData(DataConstants.PROJECT);
-        VirtualFile[] files = (VirtualFile[]) e.getDataContext().getData(DataConstants.VIRTUAL_FILE_ARRAY);
+        Project project = e.getData(DataKeys.PROJECT);
+        VirtualFile[] files = e.getData(DataKeys.VIRTUAL_FILE_ARRAY);
         if (files != null && project != null) {
             FileEditorManager editorManager = FileEditorManager.getInstance(project);
             for (VirtualFile file : files) {
