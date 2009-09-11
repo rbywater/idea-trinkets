@@ -1,5 +1,6 @@
 package org.intellij.trinkets.pluginPacker.actions;
 
+import com.intellij.compiler.impl.CompilerUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataKeys;
@@ -11,8 +12,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.trinkets.pluginPacker.PluginPacker;
 import org.intellij.trinkets.pluginPacker.ui.PluginPackerDialog;
 import org.intellij.trinkets.pluginPacker.util.PluginModuleUtil;
@@ -20,6 +19,8 @@ import org.intellij.trinkets.pluginPacker.util.PluginPackerBundle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
+import java.io.File;
 
 /**
  * Pack action.
@@ -69,10 +70,7 @@ public final class PackAction extends AnAction {
                                         if (modules.size() > 0) {
                                             ApplicationManager.getApplication().runReadAction(new Runnable() {
                                                 public void run() {
-                                                    LocalFileSystem localfilesystem = LocalFileSystem.getInstance();
-                                                    VirtualFile virtualfile = localfilesystem.refreshAndFindFileByPath(directory);
-                                                    if (virtualfile != null)
-                                                        virtualfile.refresh(false, false);
+                                                    CompilerUtil.refreshIODirectories(Arrays.asList(new File(directory)));
                                                 }
                                             });
                                         }
