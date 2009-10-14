@@ -33,6 +33,9 @@
       <entry name="?*.tld" />
     </wildcardResourcePatterns>
   </component>
+  <component name="CopyrightManager" default="">
+    <module2copyright />
+  </component>
   <component name="DependenciesAnalyzeManager">
     <option name="myForwardDirection" value="false" />
   </component>
@@ -60,6 +63,7 @@
   <component name="IdProvider" IDEtalkID="FD6F64AC84505814108383FCD2A0E6DD" />
   <component name="InspectionProjectProfileManager">
     <option name="PROJECT_PROFILE" value="Project Default" />
+    <option name="USE_PROJECT_PROFILE" value="true" />
     <version value="1.0" />
     <profiles>
       <profile version="1.0" is_locked="false">
@@ -98,21 +102,13 @@
         <inspection_tool class="WebProperties" enabled="false" level="ERROR" enabled_by_default="false" />
       </profile>
     </profiles>
-    <list size="4">
+    <list size="5">
       <item index="0" class="java.lang.String" itemvalue="SERVER PROBLEM" />
       <item index="1" class="java.lang.String" itemvalue="INFO" />
-      <item index="2" class="java.lang.String" itemvalue="WARNING" />
-      <item index="3" class="java.lang.String" itemvalue="ERROR" />
+      <item index="2" class="java.lang.String" itemvalue="TYPO" />
+      <item index="3" class="java.lang.String" itemvalue="WARNING" />
+      <item index="4" class="java.lang.String" itemvalue="ERROR" />
     </list>
-  </component>
-  <component name="IvyIDEA.ProjectSettings">
-    <option name="propertiesSettings">
-      <PropertiesSettings>
-        <option name="additionalProperties">
-          <SortedProperties />
-        </option>
-      </PropertiesSettings>
-    </option>
   </component>
   <component name="JavacSettings">
     <option name="DEBUGGING_INFO" value="true" />
@@ -270,7 +266,9 @@
   <component name="ProjectDetails">
     <option name="projectName" value="idea-trinkets" />
   </component>
-  <component name="ProjectFileVersion" converted="true" />
+  <component name="ProjectDictionaryState">
+    <dictionary name="aefimov" />
+  </component>
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/eclipseMode/eclipseMode.iml" filepath="$PROJECT_DIR$/eclipseMode/eclipseMode.iml" />
@@ -279,6 +277,26 @@
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="idea" project-jdk-type="IDEA JDK">
     <output url="file://$PROJECT_DIR$/out" />
+  </component>
+  <component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="pluginPacker" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
+      <module name="pluginPacker" />
+      <option name="VM_PARAMETERS" value="-Xmx512m" />
+      <option name="PROGRAM_PARAMETERS" value="nosplash" />
+      <log_file path="/home/aefimov/.IntelliJIdea90/system/plugins-sandbox/system/log/idea.log" checked="true" skipped="true" show_all="false" alias="IDEA LOG" />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="43080" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="true" />
+      </RunnerSettings>
+      <RunnerSettings RunnerId="Profile ">
+        <option name="myExternalizedOptions" value="&#10;additional-options=&#10;snapshots-dir=&#10;" />
+      </RunnerSettings>
+      <ConfigurationWrapper RunnerId="Debug" />
+      <method>
+        <option name="Make" enabled="false" />
+      </method>
+    </configuration>
   </component>
   <component name="ResourceManagerContainer">
     <option name="myResourceBundles">
@@ -299,6 +317,64 @@
     <RUBY_DOC NAME="NUMBER" VALUE="0" />
   </component>
   <component name="SvnBranchConfigurationManager">
+    <option name="myConfigurationMap">
+      <map>
+        <entry key="$PROJECT_DIR$">
+          <value>
+            <SvnBranchConfiguration>
+              <option name="branchMap">
+                <map>
+                  <entry key="https://idea-trinkets.googlecode.com/svn/branches">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                  <entry key="https://idea-trinkets.googlecode.com/svn/tags">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="branchUrls">
+                <list>
+                  <option value="https://idea-trinkets.googlecode.com/svn/branches" />
+                  <option value="https://idea-trinkets.googlecode.com/svn/tags" />
+                </list>
+              </option>
+              <option name="trunkUrl" value="https://idea-trinkets.googlecode.com/svn/trunk" />
+            </SvnBranchConfiguration>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/pluginPacker">
+          <value>
+            <SvnBranchConfiguration>
+              <option name="branchMap">
+                <map>
+                  <entry key="https://idea-trinkets.googlecode.com/svn/branches">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                  <entry key="https://idea-trinkets.googlecode.com/svn/tags">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="branchUrls">
+                <list>
+                  <option value="https://idea-trinkets.googlecode.com/svn/branches" />
+                  <option value="https://idea-trinkets.googlecode.com/svn/tags" />
+                </list>
+              </option>
+              <option name="trunkUrl" value="https://idea-trinkets.googlecode.com/svn/trunk" />
+            </SvnBranchConfiguration>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="myVersion" value="124" />
     <option name="mySupportsUserInfoFilter" value="true" />
   </component>
@@ -330,7 +406,7 @@
   </component>
   <component name="WebServicesPlugin" addRequiredLibraries="true" />
   <UsedPathMacros>
-    <macro name="TEMPLATE" description="" />
+    <macro name="TEMPLATE" />
   </UsedPathMacros>
 </project>
 
