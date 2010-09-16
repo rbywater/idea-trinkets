@@ -3,9 +3,14 @@
     <name>Offline Module</name>
     <id>OfflineModule</id>
     <description>Disable or enable modules in project without deleting</description>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <vendor>Alexey Efimov</vendor>
-    <idea-version since-build="7104"/>
+    <idea-version since-build="95.429"/>
+
+    <extensions xmlns="com.intellij">
+        <treeStructureProvider implementation="org.intellij.trinkets.offlineModule.projectView.DisabledModulesTreeStructureProvider"/>
+    </extensions>
+
     <project-components>
         <component>
             <implementation-class>org.intellij.trinkets.offlineModule.OfflineModuleManager</implementation-class>
