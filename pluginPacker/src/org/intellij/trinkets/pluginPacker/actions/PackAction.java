@@ -14,8 +14,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.intellij.trinkets.pluginPacker.PluginPacker;
 import org.intellij.trinkets.pluginPacker.ui.PluginPackerDialog;
-import org.intellij.trinkets.pluginPacker.util.PluginModuleUtil;
 import org.intellij.trinkets.pluginPacker.util.PluginPackerBundle;
+import org.jetbrains.idea.devkit.module.PluginModuleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ public final class PackAction extends AnAction {
                         project,
                         pluginModules.toArray(new Module[pluginModules.size()]),
                         selectedModule != null &&
-                                PluginModuleUtil.isPluginModule(selectedModule) ? selectedModule : null
+                                PluginModuleType.isOfType(selectedModule) ? selectedModule : null
                 );
                 dialog.setTitle(PluginPackerBundle.message("prepare.plugin.for.deploying"));
                 dialog.show();
@@ -89,7 +89,7 @@ public final class PackAction extends AnAction {
         Module[] modules = moduleManager.getSortedModules();
         List<Module> pluginModules = new ArrayList<Module>(modules.length);
         for (Module module : modules) {
-            if (PluginModuleUtil.isPluginModule(module)) {
+            if (PluginModuleType.isOfType(module)) {
                 pluginModules.add(module);
             }
         }

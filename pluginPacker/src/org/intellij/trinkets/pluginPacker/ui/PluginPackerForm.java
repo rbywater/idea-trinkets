@@ -7,6 +7,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.FixedSizeButton;
@@ -278,7 +279,7 @@ final class PluginPackerForm {
             Module module = (Module) value;
             if (module != null) {
                 component.setText(module.getName());
-                component.setIcon(module.getModuleType().getNodeIcon(false));
+                component.setIcon(ModuleType.get(module).getNodeIcon(false));
             } else {
                 component.setText(PluginPackerBundle.message("all.plugin.modules"));
                 component.setIcon(PluginModuleType.getInstance().getNodeIcon(false));
