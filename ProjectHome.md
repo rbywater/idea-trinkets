@@ -1,0 +1,1 @@
+A set of small trinket plugins for IntelliJ IDEA.
